@@ -125,11 +125,24 @@ class FFLogs {
                 resultDetails.buff.auras.forEach(buffDetail => {
                   if (buffDetail.type !== 'Pet') {
                     result.bands.forEach(b => {
-                      const resultBand = buffDetail.bands.find(band => {
-                        return band.startTime >= b.startTime && band.endTime <= b.endTime
+                      if (!b.originalStart) {
+                        b.originalStart = b.startTime
+                        b.originalEnd = b.endTime
+                      }
+                      const resultBands = buffDetail.bands.filter(band => {
+                        return band.startTime >= b.originalStart && band.endTime <= b.originalEnd
                       })
-                      if (resultBand) {
+                      if (resultBands && resultBands.length) {
                         b.targets = b.targets || []
+                        resultBands.forEach(resultBand => {
+                          if (!b.targets.length) {
+                            b.startTime = resultBand.startTime
+                            b.endTime = resultBand.endTime
+                          } else {
+                            b.startTime = resultBand.startTime < b.startTime ? resultBand.startTime : b.startTime
+                            b.endTime = resultBand.endTime > b.endTime ? resultBand.endTime : b.endTime
+                          }
+                        })
                         b.targets.push(buffDetail.name)
                       }
                     })

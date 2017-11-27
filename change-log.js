@@ -6,7 +6,8 @@ const ChangeLog = {
       list: [
         'Hovering over the number in "From Other Buffs" will give you a breakdown of how much each buff contributed damage to that player.',
         'Added tracking for Embolden, properly split up into 5 buffs, each lasting 4s.',
-        'Added tracking for The Spear.'
+        'Added tracking for The Spear.',
+        'Added tracking for The Arrow, Fey Wind.'
       ]
     },
 
@@ -35,7 +36,7 @@ const ChangeLog = {
 
   issues: [
     'Slashing Resistance Down is not being tracked yet.',
-    'All speed buffs are not being tracked yet.',
+    'All speed buffs and crit buffs are currently tracked as static damage buffs, find a better way to do this.',
     'No clue what to do in the case of double jobs, right now it will definitely produce incorrect results.',
     'Find a way to check the type of Royal Road when a card is single target. There\'s also no way to tell when a card has been overwritten right now.'
   ]

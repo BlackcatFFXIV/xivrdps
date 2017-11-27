@@ -1,5 +1,8 @@
 const critModifier = 0.4666666666
 const dhModifier = 0.25
+const hasteStaticBuff = (hasteBonus) => {
+  return 1 / (1 - hasteBonus) - 1
+}
 
 const FFLogsResources = {
   buffIds: {
@@ -9,10 +12,10 @@ const FFLogsResources = {
     'Chain Stratagem': 1001221,
     'Foe Requiem': 1000140,
     //'Slashing Resistance Down': 1000819,
-    //'Fey Wind': 1000799,
+    'Fey Wind': 1000799,
     'Left Eye': 1001184,
     'The Spear': 1000832,
-    //'The Arrow': 1000831,
+    'The Arrow': 1000831,
     'The Balance': 1000829,
     'Battle Voice': 1000141,
     'Battle Litany': 1000786,
@@ -31,9 +34,11 @@ const FFLogsResources = {
     'Trick Attack': {bonus: 0.1, job: 'Ninja', type: 'aoe', debuff: true},
     'The Balance': {bonus: 0.05, job: 'Astrologian', type: 'aoe', buff: true, soloBonus: 0.15},
     'The Spear': {bonus: 0.05 * critModifier, job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, soloBonus: 0.15 * critModifier},
+    'The Arrow': {bonus: hasteStaticBuff(0.05), job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, soloBonus: hasteStaticBuff(0.15)},
     'Foe Requiem': {bonus: 0.03, job: 'Bard', type: 'aoe', debuff: true},
     'Hypercharge': {bonus: 0.06, job: 'Machinist', type: 'aoe', debuff: true},
     'Devotion': {bonus: 0.02, job: 'Summoner', type: 'aoe', buff: true},
+    'Fey Wind': {bonus: hasteStaticBuff(0.03), job: 'Scholar', type: 'aoe', critBuff: true, buff: true},
     'Chain Stratagem': {bonus: 0.15 * critModifier, job: 'Scholar', type: 'aoe', critBuff: true, debuff: true},
     'Battle Voice': {bonus: 0.15 * dhModifier, job: 'Bard', type: 'aoe', critBuff: true, buff: true},
     'Critical Up': {bonus: 0.02 * critModifier, job: 'Bard', type: 'aoe', critBuff: true, buff: true},

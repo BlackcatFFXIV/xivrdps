@@ -30,6 +30,8 @@
       <hr />
       At the moment, critical hit and direct hit buffs are treated as static damage buffs. The crit modifier used is 0.4666... and the direct hit modifier is half that.
       <hr />
+      At the moment, all haste buffs are treated as static damage buffs. The function used for this is 1 / (1 - hasteBonus) - 1.
+      <hr />
       Yes, I know there's a bunch of edge cases with dots, stacking multiplicative raid buffs, and etc... This is designed to be an imperfect, naive implementation of data we had to scrounge up before. This makes the current method for finding said data a lot easier. The best way to accurately find this data would be to create a full replay using the timeline of buffs/attacks as they happen.
     </div>
   </div>
