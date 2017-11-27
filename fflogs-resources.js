@@ -1,3 +1,6 @@
+const critModifier = 0.4666666666
+const dhModifier = critModifier / 2.0
+
 const FFLogsResources = {
   buffIds: {
     'Trick Attack': 1000638,
@@ -8,7 +11,7 @@ const FFLogsResources = {
     //'Slashing Resistance Down': 1000819,
     //'Fey Wind': 1000799,
     'Left Eye': 1001184,
-    //'The Spear': 1000832,
+    'The Spear': 1000832,
     //'The Arrow': 1000831,
     'The Balance': 1000829,
     'Battle Voice': 1000141,
@@ -21,16 +24,20 @@ const FFLogsResources = {
     'Embolden': 1001297
   },
 
+  critModifier: critModifier,
+  dhModifier: dhModifier,
+
   buffs: {
     'Trick Attack': {bonus: 0.1, job: 'Ninja', type: 'aoe', debuff: true},
     'The Balance': {bonus: 0.05, job: 'Astrologian', type: 'aoe', buff: true, soloBonus: 0.15},
+    'The Spear': {bonus: 0.05 * critModifier, job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, soloBonus: 0.15 * critModifier},
     'Foe Requiem': {bonus: 0.03, job: 'Bard', type: 'aoe', debuff: true},
     'Hypercharge': {bonus: 0.06, job: 'Machinist', type: 'aoe', debuff: true},
     'Devotion': {bonus: 0.02, job: 'Summoner', type: 'aoe', buff: true},
-    'Chain Stratagem': {bonus: 0.07, job: 'Scholar', type: 'aoe', critBuff: true, debuff: true},
-    'Battle Voice': {bonus: 0.0345, job: 'Bard', type: 'aoe', critBuff: true, buff: true},
-    'Critical Up': {bonus: 0.0095, job: 'Bard', type: 'aoe', critBuff: true, buff: true},
-    'Battle Litany': {bonus: 0.07, job: 'Dragoon', type: 'aoe', critBuff: true, buff: true},
+    'Chain Stratagem': {bonus: 0.15 * critModifier, job: 'Scholar', type: 'aoe', critBuff: true, debuff: true},
+    'Battle Voice': {bonus: 0.15 * dhModifier, job: 'Bard', type: 'aoe', critBuff: true, buff: true},
+    'Critical Up': {bonus: 0.02 * critModifier, job: 'Bard', type: 'aoe', critBuff: true, buff: true},
+    'Battle Litany': {bonus: 0.15 * critModifier, job: 'Dragoon', type: 'aoe', critBuff: true, buff: true},
     'Left Eye': {bonus: 0.05, job: 'Dragoon', type: 'solo', buff: true},
     'Piercing Resistance Down': {bonus: 0.05, job: 'Dragoon', type: 'solo', debuff: true, affected: ['Bard', 'Machinist']},
     'Physical Vulnerability Up': {bonus: 0.02, job: 'Summoner', type: 'solo', debuff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior']},
