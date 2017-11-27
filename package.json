@@ -1,0 +1,24 @@
+{
+  "name": "FFLogsRaidDPSUtility",
+  "version": "0.0.1",
+  "description": "A utility for finding Raid DPS contribution via buffs on FFLogs.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Blackcat Ofillomen of Elysium of Gilgamesh of Aether of North America of FFXIV",
+  "license": "BSD",
+  "dependencies": {
+    "body-parser": "latest",
+    "bootstrap": "^4.0.0-alpha.4",
+    "express": "^4.14.0",
+    "https": "^1.0.0",
+    "jquery": "^3.1.1",
+    "mongoose": "^4.13.5",
+    "mustache": "^2.3.0",
+    "mustache-express": "^1.2.2",
+    "popper.js": "^1.12.9",
+    "request": "^2.83.0",
+    "requestretry": "^1.12.2"
+  }
+}

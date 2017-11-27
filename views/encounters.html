@@ -1,0 +1,61 @@
+{{> header}}
+
+<div class="container container-inner">
+  <div class="container container-inner content">
+    <h4>{{encounter.name}} ({{encounter.timeTaken}})<h4>
+    <h5>{{encounter.zoneName}}</h5>
+  </div>
+  <table class="table table-striped">
+    <tr>
+      <th class="type-icon"> </th>
+      <th>Name</th>
+      <th>Personal DPS</th>
+      <th>Contribution</th>
+      <th>From Other Buffs</th>
+      <th>Raid DPS</th>
+    </tr>
+    {{# damageDone}}
+    <tr>
+      <td class="type-icon"><img src="/img/class/{{type}}.png" alt="{{type}}" /></td>
+      <td>{{name}}</td>
+      <td>{{personalDPS}}</td>
+      <td>
+      {{# contributions}}
+        <span class="buff"><img src="/img/buffs/{{icon}}" alt="{{name}}" /> {{dps}}</span>
+      {{/contributions}}
+      </td>
+      <td><a class="tooltip-holder" title="{{#fromOtherBuffs}}<span class='buff'><img src='/img/buffs/{{buff.icon}}' alt='{{buff.name}}' /> {{dps}}</span>{{/fromOtherBuffs}}" data-html="true" rel="tooltip" href="#">{{penalty}}</a></td>
+      <td>{{raidDPS}}</td>
+    </tr>
+    {{/damageDone}}
+    <tr>
+      <td></td>
+      <td></td>
+      <td>{{totalPersonalDPS}}</td>
+      <td>{{totalContribution}}</td>
+      <td></td>
+      <td></td>
+  </table>
+  <div class="container container-inner content content-small">
+    <a role="button" href="https://www.fflogs.com/reports/{{encounter.id}}#fight={{encounter.fightId}}&type=damage-done" class="btn btn-primary">
+      Original Log
+    </a>
+    <br /><br />
+    All buff calculations here are taken by looking at the party's DPS while a buff is up, and multiplying it by the bonus. If a buff is solo or only affects certain targets, that is taken into consideration.
+    <hr />
+    At the moment, critical hit and direct hit buffs are treated as static damage buffs.
+    <ul>
+      <li>Chain Stratagem / Battle Litany: 7%</li>
+      <li>Battle Voice: 3.45%</li>
+      <li>Critical Up: 0.95%</li>
+    </ul>
+    <hr />
+    Yes, I know there's a bunch of edge cases with dots, stacking multiplicative raid buffs, and etc... This is designed to be an imperfect, naive implementation of data we had to scrounge up before. This makes the current method for finding said data a lot easier. The best way to accurately find this data would be to create a full replay using the timeline of buffs/attacks as they happen.
+    <hr />
+    Created by: Blackcat Ofillomen of Gilgamesh
+    <br />Created using the FFLogs API: <a href="https://www.fflogs.com">https://www.fflogs.com</a>
+    <br />Thanks to Kihra for all the great work he's done on FFLogs to date!
+  </div>
+</div>
+
+{{> footer}}

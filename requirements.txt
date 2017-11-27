@@ -1,0 +1,22 @@
+Initial Request (to get start/end time)
+https://www.fflogs.com:443/v1/report/fights/J1dtpqYwk8B94HGa?translate=true&api_key=559c627c55c766796777b03c8897512e
+
+Damage of Each Player (with Attacks)
+https://www.fflogs.com:443/v1/report/tables/damage-done/J1dtpqYwk8B94HGa?start=6364811&end=6665886&translate=true&api_key=559c627c55c766796777b03c8897512e
+
+Debuff Uptime (use start/end on the above):
+https://www.fflogs.com:443/v1/report/tables/debuffs/J1dtpqYwk8B94HGa?start=6364811&end=6665886&hostility=1&abilityid=1000638&translate=true&api_key=559c627c55c766796777b03c8897512e
+
+Buff Uptime (use start/end on the above):
+https://www.fflogs.com:443/v1/report/tables/buffs/J1dtpqYwk8B94HGa?start=6364811&end=6665886&hostility=0&abilityid=1000829&translate=true&api_key=559c627c55c766796777b03c8897512e
+
+Objectives:
+1: Uses buff/debuff start/end to get a timeline of damage done while each individual buff is up
+2: Attribute buff dps to source's RDPS (trick attack being 0.1 and etc), while comparing it to their PDPS (Naive - First Release)
+3: Create a better timeline using Stacked Buffs rather than Individual since we have each timeline.
+4: Work backwards to find contribution of each individual buff (still inaccurate but better than the above unless we add in each self-buff).
+
+Front-end:
+Show player personal dps, contribution, and raid dps, then a breakdown of the player using each buff and its contribution.
+
+IDs and other using this technique using the website itself: https://pastebin.com/wNg4qZad
