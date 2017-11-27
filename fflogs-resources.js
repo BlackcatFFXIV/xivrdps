@@ -1,5 +1,5 @@
 const critModifier = 0.4666666666
-const dhModifier = critModifier / 2.0
+const dhModifier = 0.25
 
 const FFLogsResources = {
   buffIds: {
