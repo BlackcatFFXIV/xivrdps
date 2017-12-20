@@ -13,15 +13,18 @@ class FFLogs {
 
   encounter(encounterId, fightId, options, cb) {
     this.request('fights/' + encounterId, options, result => {
-      if (!result || !result.fights || !result.fights.length) {
-        cb(null)
+      if (!result || result.error || !result.fights || !result.fights.length) {
+        if (result && (!result.fights || !result.fights.length) && !result.error) {
+          cb({error: 'No encounters found.'})
+        }
+        cb(result)
       } else {
         fightId = fightId !== undefined ? parseFloat(fightId) : -1
         if (fightId > result.fights.length - 1) fightId = -1
         if (fightId < 0) fightId = result.fights.length
         const encounter = result.fights.find(e => e.id === fightId)
         if (!encounter) {
-          cb(null)
+          cb({error: 'No encounters found.'})
         } else {
           encounter.fightId = fightId
           encounter.id = encounterId
@@ -49,8 +52,9 @@ class FFLogs {
 
     const requestResult = () => {
       this.request('tables/damage-done/' + encounter.id, options, result => {
-        if (!result || !result.entries) {
-          cb(null)
+        if (!result || !result.entries || result.error) {
+          if (result && !result.entries && !result.error) result.error = 'No entries found.'
+          cb(result)
         } else {
           onResult(result, true)
         }
@@ -78,7 +82,7 @@ class FFLogs {
     const soloBuffTypes = Object.keys(resources.buffs).filter(t => resources.buffs[t].type === 'solo')
 
     this.request('tables/buffs/' + encounter.id, options, resultBuffs => {
-      if (resultBuffs) {
+      if (resultBuffs && !resultBuffs.error) {
         resultBuffs = resultBuffs.auras.filter(a => (buffsToCheck.indexOf(a.guid) != -1 || resources.buffIds[a.name]) && (a.guid !== resources.buffs[a.name].excludeId))
 
         const promises = []
@@ -87,7 +91,7 @@ class FFLogs {
           promises.push(new Promise((resolve, reject) => {
             const newOptions = Object.assign({}, options, { abilityid: b.guid })
             this.request('tables/buffs/' + encounter.id, newOptions, buffDetails => {
-              if (buffDetails) {
+              if (buffDetails && !buffDetails.error) {
                 //console.log(b.name, buffDetails)
                 resolve({ buff: buffDetails, abilityId: newOptions.abilityid })
               } else {
@@ -101,7 +105,7 @@ class FFLogs {
           options = Object.assign({}, options, { hostility: 1 })
 
           this.request('tables/debuffs/' + encounter.id, options, resultDebuffs => {
-            if (resultDebuffs) {
+            if (resultDebuffs && !resultDebuffs.error) {
               resultDebuffs = resultDebuffs.auras.filter(a => buffsToCheck.indexOf(a.guid) != -1)
 
               resultDebuffs.forEach(debuff => {
@@ -116,6 +120,9 @@ class FFLogs {
                 }
               })
               resultDebuffs = resultDebuffs.filter(b => resources.buffs[b.name].debuff)
+            } else if (resultDebuffs && resultDebuffs.error) {
+              cb(resultDebuffs.error)
+              return
             }
             resultBuffs = resultBuffs.filter(b => resources.buffs[b.name].buff)
 
@@ -154,6 +161,8 @@ class FFLogs {
             cb(results)
           })
         })
+      } else if (resultBuffs && resultBuffs.error) {
+        cb(resultBuffs)
       } else {
         cb(null)
       }
@@ -210,9 +219,8 @@ class FFLogs {
           const affected = resources.buffs[value.buff.name].affected
           const debuff = resources.buffs[value.buff.name].debuff
           let targeted = (value.targets.indexOf(entry.name) !== -1)
-          if (!targeted && ((debuff && type === 'aoe') || (affected && affected.indexOf(entry.type) !== -1))) {
-            targeted = true
-          }
+          if (!targeted && debuff) targeted = true
+          if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
           if (targeted) {
             value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0, isSolo: value.targets.length === 1}
             value.buff.entries[entry.name].total += entry.total
@@ -277,8 +285,9 @@ class FFLogs {
     request({url: fullUrl, json: true}, (err, res, body) => {
       if (err) {
         console.log(err)
-        cb(null)
+        cb({error: 'FFLogs: ' + err})
       } else {
+        if (body.error) body.error = 'FFLogs: ' + body.error
         cb(body)
       }
     })
@@ -330,13 +339,15 @@ class FFLogs {
     const fullUrl = url + '/v1/rankings/encounter/' + encounterId + '?metric=speed&api_key=' + apiKey
     request({url: fullUrl, json: true}, (err, res, body) => {
       if (err) {
-        console.log(err)
-        cb(null)
+        cb({error: err})
         return
-      }
-      if (!body.rankings) {
+      } else if (body && body.error) {
         console.log(body)
-        cb(null)
+        cb(body)
+        return
+      } else if (!body.rankings) {
+        console.log(body)
+        cb({error: 'No rankings found.'})
         return
       }
       body.rankings.forEach(ranking => {

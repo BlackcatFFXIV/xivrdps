@@ -49,6 +49,8 @@ class Views {
               encounterName: encounterName,
               listings: results.rankings
             })
+          } else if (results && results.error) {
+            res.send(results.error)
           } else {
             res.send('An error has occured.')
           }
@@ -61,12 +63,14 @@ class Views {
           const characterName = characterArr[0] + ' ' + characterArr[1]
           const characterWorld = characterArr[2]
           fflogs.characterData(characterName, characterWorld, results => {
-            if (results) {
+            if (results && !results.error) {
               res.render('characters', {
                 characterName: characterName,
                 characterWorld: characterWorld,
                 characterEncounters: results
               })
+            } else if (results && results.error) {
+              res.send(results.error)
             } else {
               res.send('An error has occured.')
             }
@@ -83,19 +87,32 @@ class Views {
         try {
           fflogs.encounter(encounterId, fightId, {}, encounter => {
             if (encounter) {
+              if (encounter.error) {
+                res.send(encounter.error)
+                return
+              }
               fflogs.damageDone(encounter, {}, damageDone => {
                 if (!damageDone) {
                   res.send('An error has occured.')
+                  return
+                } else if (damageDone.error) {
+                  res.send(damageDone.error)
                   return
                 }
                 fflogs.buffTimeline(encounter, {}, buffs => {
                   if (!buffs) {
                     res.send('An error has occured.')
                     return
+                  } else if (buffs.error) {
+                    res.send(buffs.error)
+                    return
                   }
                   fflogs.damageFromBuffs(encounter, buffs, {}, contribution => {
                     if (!contribution) {
                       res.send('An error has occured.')
+                      return
+                    } else if (contribution.error) {
+                      res.send(contribution.error)
                       return
                     }
                     res.render('encounters', this.playersView(encounter, damageDone, contribution))
@@ -132,6 +149,12 @@ class Views {
     data.totalRaidDPS = 0
     data.totalContribution = 0
 
+    data.jobAmount = {}
+    data.damageDone.forEach(entry => {
+      data.jobAmount[entry.type] = data.jobAmount[entry.type] || 0
+      data.jobAmount[entry.type]++
+    })
+
     data.damageDone.forEach(entry => {
       if (entry.type === 'LimitBreak') {
         entry.raidDPSFull = entry.personalDPSFull
@@ -142,6 +165,7 @@ class Views {
         let dpsPenalty = 0
         const buffs = data.contribution.filter(b => resources.buffs[b.name].job === entry.type)
         const otherBuffs = data.contribution.filter(b => resources.buffs[b.name].job !== entry.type)
+        const jobAmount = data.jobAmount[entry.type] || 1
         entry.fromOtherBuffs = []
         otherBuffs.forEach(buff => {
           const buffEntry = buff.entries.find(e => e.name === entry.name)
@@ -153,8 +177,9 @@ class Views {
         })
         buffs.forEach(buff => {
           const disclaimer = resources.buffs[buff.name].critBuff ? '*' : ''
-          entry.contributions.push({ name: buff.name, icon: buff.icon, dps: buff.dps.toFixed(1) + disclaimer })
-          entry.contributionDPS += buff.dps
+          let dps = buff.dps / jobAmount
+          entry.contributions.push({ name: buff.name, icon: buff.icon, dps: dps.toFixed(1) + disclaimer })
+          entry.contributionDPS += dps
         })
         entry.raidDPSFull = (entry.personalDPSFull + entry.contributionDPS - dpsPenalty)
         entry.raidDPS = entry.raidDPSFull.toFixed(1)

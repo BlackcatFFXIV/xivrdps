@@ -1,6 +1,16 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('12-20-2017'),
+      description: 'Handle errors better in the case of too many FFLogs requests.',
+      list: [
+        'Added some more error handling/showing for FFLogs request errors. If the site is getting hammered, "too many requests" errors can occur since FFLogs only allows a maximum of 240 requests every 2 minutes. These changes should help a bit with showing that error more correctly, as there are not too many ways of getting around this issue right now.',
+        'In certain situations (like Brotherhood, casters were getting affected), role-based buffs were not working properly before. It should be working correctly now. If this breaks anything, please let me know.',
+        'In the case of duplicate jobs, divide contribution between them by the amount of duplicates (since the app cannot know where buffs came from at this time).'
+      ]
+    },
+
+    {
       date: new Date('11-26-2017'),
       description: '',
       list: [
