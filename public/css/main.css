@@ -6,6 +6,11 @@ input, select {
   border-color: #666;
 }
 
+.svg-icon {
+  width: 26px;
+  height: 26px;
+}
+
 .btn-primary {
   text-shadow: 1px 1px 2px black;
 }
