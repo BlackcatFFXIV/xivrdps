@@ -285,9 +285,9 @@ class FFLogs {
     request({url: fullUrl, json: true}, (err, res, body) => {
       if (err) {
         console.log(err)
-        cb({error: 'FFLogs: ' + err})
+        cb({error: 'FFLogs Request Error: ' + err})
       } else {
-        if (body.error) body.error = 'FFLogs: ' + body.error
+        if (body.error) body.error = 'FFLogs Request Error: ' + body.error
         cb(body)
       }
     })
@@ -316,8 +316,12 @@ class FFLogs {
     const fullUrl = url + '/v1/parses/character/' + characterName + '/' + worldName + '/' + characterRegion + '?api_key=' + apiKey
     request({url: fullUrl, json: true}, (err, res, body) => {
       if (err || !body || !body.length) {
-        cb(null)
+        cb({error: err})
         console.log(err)
+      } else if (body && body.error) {
+        if (body.error) body.error = 'FFLogs Request Error: ' + body.error
+        console.log(body)
+        cb(body)
       } else {
         body.forEach(encounter => {
           encounter.specs.forEach(spec => {
@@ -339,9 +343,10 @@ class FFLogs {
     const fullUrl = url + '/v1/rankings/encounter/' + encounterId + '?metric=speed&api_key=' + apiKey
     request({url: fullUrl, json: true}, (err, res, body) => {
       if (err) {
-        cb({error: err})
+        cb({error: 'FFLogs Request Error: ' + err})
         return
       } else if (body && body.error) {
+        if (body.error) body.error = 'FFLogs Request Error: ' + body.error
         console.log(body)
         cb(body)
         return

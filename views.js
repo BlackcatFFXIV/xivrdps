@@ -50,9 +50,9 @@ class Views {
               listings: results.rankings
             })
           } else if (results && results.error) {
-            res.send(results.error)
+            res.render('errors', results)
           } else {
-            res.send('An error has occured.')
+            res.render('errors', {error: 'An unknown error has occured.'})
           }
         })
       },
@@ -70,9 +70,9 @@ class Views {
                 characterEncounters: results
               })
             } else if (results && results.error) {
-              res.send(results.error)
+              res.render('errors', results)
             } else {
-              res.send('An error has occured.')
+              res.render('errors', {error: 'An unknown error has occured.'})
             }
           })
         } else {
@@ -88,31 +88,31 @@ class Views {
           fflogs.encounter(encounterId, fightId, {}, encounter => {
             if (encounter) {
               if (encounter.error) {
-                res.send(encounter.error)
+                res.render('errors', encounter)
                 return
               }
               fflogs.damageDone(encounter, {}, damageDone => {
                 if (!damageDone) {
-                  res.send('An error has occured.')
+                  res.render('errors', {error: 'An unknown error has occured.'})
                   return
                 } else if (damageDone.error) {
-                  res.send(damageDone.error)
+                  res.render('errors', damageDone)
                   return
                 }
                 fflogs.buffTimeline(encounter, {}, buffs => {
                   if (!buffs) {
-                    res.send('An error has occured.')
+                    res.render('errors', {error: 'An unknown error has occured.'})
                     return
                   } else if (buffs.error) {
-                    res.send(buffs.error)
+                    res.render('errors', buffs)
                     return
                   }
                   fflogs.damageFromBuffs(encounter, buffs, {}, contribution => {
                     if (!contribution) {
-                      res.send('An error has occured.')
+                      res.render('errors', {error: 'An unknown error has occured.'})
                       return
                     } else if (contribution.error) {
-                      res.send(contribution.error)
+                      res.render('errors', contribution)
                       return
                     }
                     res.render('encounters', this.playersView(encounter, damageDone, contribution))
@@ -120,11 +120,11 @@ class Views {
                 })
               })
             } else {
-              res.send('Unknown or Malformatted Encounter/Fight.')
+              res.render('errors', {error: 'Unknown or Malformatted Encounter/Fight.'})
             }
           })
         } catch(e) {
-          res.send('An error has occured.')
+          res.render('errors', {error: 'An unknown error has occured.'})
         }
       },
 
@@ -224,7 +224,7 @@ function timeStr(timeObj) {
 }
 
 process.on('uncaughtException', function(err) {
-  console.log('An error has occured.')
+  console.log(err)
 })
 
 module.exports = Views
