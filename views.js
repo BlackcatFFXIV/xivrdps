@@ -198,4 +198,8 @@ function timeStr(timeObj) {
   return timeString
 }
 
+process.on('uncaughtException', function(err) {
+  console.log('An error has occured.')
+})
+
 module.exports = Views
