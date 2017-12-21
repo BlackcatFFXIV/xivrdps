@@ -88,13 +88,19 @@ class Views {
 
         const getEncounterFromDB = () => {
           try {
-            Result.findOne({id: encounterId, fightId: fightId}).exec((err, data) => {
+            const getEncounter = (err, data) => {
               if (!err && data && data.damageDone && data.damageDone.length) {
                 res.render('encounters', this.playersView(data))
               } else {
                 getEncounterFromFFLogs()
               }
-            })
+            }
+
+            if (fightId > -1) {
+              Result.findOne({id: encounterId, fightId: fightId}).exec(getEncounter)
+            } else {
+              Result.findLatest(encounterId, getEncounter)
+            }
           } catch (e) {
             getEncounterFromFFLogs()
           }
@@ -154,12 +160,7 @@ class Views {
           }
         }
 
-        if (fightId > -1) {
-          getEncounterFromDB()
-        } else {
-          res.render('errors', {error: 'Unknown or Malformatted Encounter/Fight.'})
-          return
-        }
+        getEncounterFromDB()
       },
 
       '*': (req, res) => {

@@ -11,6 +11,12 @@ const resultSchema = new mongoose.Schema({
   contribution: [Contribution]
 })
 
+resultSchema.statics.findLatest = function (encounterId, cb) {
+  this.findOne({ id: encounterId })
+    .sort('-fightId')
+    .exec(cb)
+}
+
 const Result = mongoose.model('Result', resultSchema)
 
 module.exports = Result
