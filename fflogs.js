@@ -56,7 +56,7 @@ class FFLogs {
           if (result && !result.entries && !result.error) result.error = 'No entries found.'
           cb(result)
         } else {
-          onResult(result, true)
+          onResult(result, false)
         }
       })
     }

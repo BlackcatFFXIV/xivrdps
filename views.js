@@ -1,5 +1,6 @@
 const resources = require('./fflogs-resources')
 const changeLog = require('./change-log')
+const Result = require('./models/result')
 
 const encounterIds = [
   {name: 'Ultimate', encounters: {'Unending Coil': '1039'}},
@@ -82,49 +83,82 @@ class Views {
 
       'encounters/:id/:fightId?': (req, res) => {
         const encounterId = req.params.id
-        const fightId = req.params.fightId || -1
+        let fightId = req.params.fightId || -1
+        fightId = fightId !== undefined ? parseFloat(fightId) : -1
 
-        try {
-          fflogs.encounter(encounterId, fightId, {}, encounter => {
-            if (encounter) {
-              if (encounter.error) {
-                res.render('errors', encounter)
-                return
+        const getEncounterFromDB = () => {
+          try {
+            Result.findOne({id: encounterId, fightId: fightId}).exec((err, data) => {
+              if (!err && data && data.damageDone && data.damageDone.length) {
+                res.render('encounters', this.playersView(data))
+              } else {
+                getEncounterFromFFLogs()
               }
-              fflogs.damageDone(encounter, {}, damageDone => {
-                if (!damageDone) {
-                  res.render('errors', {error: 'An unknown error has occured.'})
-                  return
-                } else if (damageDone.error) {
-                  res.render('errors', damageDone)
+            })
+          } catch (e) {
+            getEncounterFromFFLogs()
+          }
+        }
+
+        const getEncounterFromFFLogs = () => {
+          try {
+            fflogs.encounter(encounterId, fightId, {}, encounter => {
+              if (encounter) {
+                if (encounter.error) {
+                  res.render('errors', encounter)
                   return
                 }
-                fflogs.buffTimeline(encounter, {}, buffs => {
-                  if (!buffs) {
+                fflogs.damageDone(encounter, {}, damageDone => {
+                  if (!damageDone) {
                     res.render('errors', {error: 'An unknown error has occured.'})
                     return
-                  } else if (buffs.error) {
-                    res.render('errors', buffs)
+                  } else if (damageDone.error) {
+                    res.render('errors', damageDone)
                     return
                   }
-                  fflogs.damageFromBuffs(encounter, buffs, {}, contribution => {
-                    if (!contribution) {
+                  fflogs.buffTimeline(encounter, {}, buffs => {
+                    if (!buffs) {
                       res.render('errors', {error: 'An unknown error has occured.'})
                       return
-                    } else if (contribution.error) {
-                      res.render('errors', contribution)
+                    } else if (buffs.error) {
+                      res.render('errors', buffs)
                       return
                     }
-                    res.render('encounters', this.playersView(encounter, damageDone, contribution))
+                    fflogs.damageFromBuffs(encounter, buffs, {}, contribution => {
+                      if (!contribution) {
+                        res.render('errors', {error: 'An unknown error has occured.'})
+                        return
+                      } else if (contribution.error) {
+                        res.render('errors', contribution)
+                        return
+                      }
+                      const data = {
+                        id: encounter.id,
+                        fightId: encounter.fightId,
+                        encounter: encounter,
+                        damageDone: this.fflogs.damageDoneSimple(damageDone),
+                        contribution: this.fflogs.damageContributionSimple(contribution)
+                      }
+                      res.render('encounters', this.playersView(data))
+                      const encounterResultModel = new Result(data)
+                      encounterResultModel.save()
+                    })
                   })
                 })
-              })
-            } else {
-              res.render('errors', {error: 'Unknown or Malformatted Encounter/Fight.'})
-            }
-          })
-        } catch(e) {
-          res.render('errors', {error: 'An unknown error has occured.'})
+              } else {
+                res.render('errors', {error: 'Unknown or Malformatted Encounter/Fight.'})
+              }
+            })
+          } catch(e) {
+            res.render('errors', {error: 'An unknown error has occured.'})
+          }
+        }
+
+        if (fightId > -1) {
+          getEncounterFromDB()
+        } else {
+          res.render('errors', {error: 'Unknown or Malformatted Encounter/Fight.'})
+          return
         }
       },
 
@@ -138,13 +172,7 @@ class Views {
     }
   }
 
-  playersView(encounter, damageDone, contribution) {
-    const data = {
-      encounter: encounter,
-      damageDone: this.fflogs.damageDoneSimple(damageDone),
-      contribution: this.fflogs.damageContributionSimple(contribution)
-    }
-
+  playersView(data) {
     data.totalPersonalDPS = 0
     data.totalRaidDPS = 0
     data.totalContribution = 0
@@ -196,7 +224,7 @@ class Views {
     data.totalRaidDPS = data.totalRaidDPS.toFixed(1)
     data.totalPersonalDPS = data.totalPersonalDPS.toFixed(1)
 
-    encounter.timeTaken = timeStr(intervalObj(encounter.totalTime))
+    data.encounter.timeTaken = timeStr(intervalObj(data.encounter.totalTime))
 
     return data
   }

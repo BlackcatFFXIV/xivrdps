@@ -1,6 +1,14 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('12-21-2017'),
+      description: '',
+      list: [
+        'Save full results instead of just damage done results to reduce number of FFLogs requests. The only issue is that if more data is needed/changed, this table will likely need to be cleared.'
+      ]
+    },
+
+    {
       date: new Date('12-20-2017'),
       description: 'Handle errors better in the case of too many FFLogs requests.',
       list: [
