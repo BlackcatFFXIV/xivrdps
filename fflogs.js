@@ -287,7 +287,11 @@ class FFLogs {
         console.log(err)
         cb({error: 'FFLogs Request Error: ' + err})
       } else {
-        if (body.error) body.error = 'FFLogs Request Error: ' + body.error
+        if (!body) {
+          body = {error: 'FFLogs Request Error: Blank response.'}
+        } else if (body.error) {
+          body.error = 'FFLogs Request Error: ' + body.error
+        }
         cb(body)
       }
     })
