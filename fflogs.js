@@ -30,6 +30,10 @@ class FFLogs {
           encounter.id = encounterId
           encounter.name = this.bossNameFromEncounter(result, encounter)
           encounter.totalTime = encounter.end_time - encounter.start_time
+          encounter.supportsRoyalRoad = (new Date(result.start) > new Date('2017-10-11'))
+          encounter.cardsAmount = 0
+          encounter.soloCards = 0
+          encounter.oldRoyalRoad = 'Enhanced Royal Road'
           cb(encounter)
         }
       }
@@ -125,8 +129,6 @@ class FFLogs {
               return
             }
             resultBuffs = resultBuffs.filter(b => resources.buffs[b.name].buff)
-
-
             resultBuffs.forEach(result => {
               const resultDetails = details.find(b => b.abilityId === result.guid)
               if (resultDetails) {
@@ -134,9 +136,10 @@ class FFLogs {
                 resultDetails.buff.auras.forEach(buffDetail => {
                   if (buffDetail.type !== 'Pet') {
                     buffDetail.bands.forEach(band => {
-                      const isCard = (result.name.indexOf('The ') !== -1)
+                      const isCard = resources.buffs[result.name].isCard
                       let key = getKey(band.startTime, band.endTime)
-                      if (isCard && band.endTime - band.startTime > 60000) band.isExpandedCard = true
+                      if (isCard) encounter.cardsAmount++
+                      if (isCard && band.endTime - band.startTime > 60000) band.isExtendedCard = true
                       const checkBands = (start, end) => {
                         for (var bKey in bandsMap) {
                           const b = bandsMap[bKey]
@@ -204,9 +207,17 @@ class FFLogs {
     })
 
     const promises = []
+    const royalRoads = []
 
     buffs.filter(b => b.name === 'Embolden').forEach(b => this.splitEmbolden(buffs, b))
     buffs.forEach(buff => {
+      const bonus = resources.buffs[buff.name].bonus
+      if (!resources.buffs[buff.name].bonus) {
+        if (resources.buffs[buff.name].isRoyalRoad) {
+          royalRoads.push(buff)
+        }
+        return
+      }
       buff.entries = {}
       buff.bands.forEach(band => {
         promises.push(new Promise((resolve, reject) => {
@@ -214,28 +225,54 @@ class FFLogs {
             if (!damageDone || damageDone.error) {
               reject(damageDone)
             } else {
-              resolve({buff: buff, targets: band.targets || [], damageDone: damageDone, start: band.startTime, end: band.endTime, timeDilatedAOE: band.timeDilatedAOE, isExpandedCard: band.isExpandedCard})
+              band.targets = band.targets || []
+              const isSolo = (!band.timeDilatedAOE && band.targets.length === 1)
+              if (isSolo) encounter.soloCards++
+              resolve({buff: buff, targets: band.targets, damageDone: damageDone, start: band.startTime, end: band.endTime, timeDilatedAOE: band.timeDilatedAOE, isExtendedCard: band.isExtendedCard, isSolo: isSolo})
             }
           })
         }))
       })
     })
 
+    function consumeRoyalRoad(value) {
+      let found = false
+      royalRoads.forEach(rr => {
+        if (found) return
+        rr.bands.forEach(band => {
+          const diff = Math.abs(band.endTime - value.start)
+          if (!found && !band.consumed && diff <= 4000) {
+            found = true
+            band.consumed = true
+            value.buff.royalRoad = rr.name
+          }
+        })
+      })
+      return found
+    }
+
     Promise.all(promises).then(values => {
+      encounter.oldRoyalRoad = ((encounter.soloCards / encounter.cardsAmount) > 0.2) ? 'Enhanced Royal Road' : ''
       values.forEach(value => {
         const simpleDamage = this.damageDoneSimple(value.damageDone)
         simpleDamage.forEach(entry => {
           const type = resources.buffs[value.buff.name].type
           const affected = resources.buffs[value.buff.name].affected
           const debuff = resources.buffs[value.buff.name].debuff
+          const isCard = resources.buffs[value.buff.name].isCard
           let targeted = (value.targets.indexOf(entry.name) !== -1)
           if (!targeted && debuff) targeted = true
           if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
           if (targeted) {
-            const isSolo = (!value.timeDilatedAOE && value.targets.length === 1)
-            let soloBonus = isSolo && resources.buffs[value.buff.name].soloBonus ? resources.buffs[value.buff.name].soloBonus : 0
-            if (isSolo && value.isExpandedCard) soloBonus /= 2
-            const total = ((entry.total * (resources.buffs[value.buff.name].bonus + soloBonus)) / (1 + (resources.buffs[value.buff.name].bonus + soloBonus)))
+            const isSolo = value.isSolo
+            if (isCard) consumeRoyalRoad(value)
+            const bonus = resources.buffs[value.buff.name].bonus
+            let soloBonus = 1
+            if (isCard && isSolo) {
+              if (!encounter.supportsRoyalRoad) value.buff.royalRoad = encounter.oldRoyalRoad
+              soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 4 : 2
+            }
+            const total = ((entry.total * (bonus * soloBonus)) / (1 + (bonus * soloBonus)))
             value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0}
             value.buff.entries[entry.name].totalBefore = value.buff.entries[entry.name].totalBefore || 0
             value.buff.entries[entry.name].totalBefore += entry.total
@@ -245,6 +282,11 @@ class FFLogs {
       })
 
       buffs.forEach(buff => {
+        const bonus = resources.buffs[buff.name].bonus
+        if (!bonus) {
+          buff.entries = []
+          return
+        }
         buff.dps = 0
         buff.total = 0
         for (let entryKey in buff.entries) {
@@ -292,7 +334,7 @@ class FFLogs {
 
   request(path, options, cb) {
     const newOptions = Object.assign({}, options, this.defaultOptions)
-    if (options.translate === false) delete newOptions.translate // Some things are breaking with trasnlate=true.
+    if (options.translate === false) delete newOptions.translate // Some things are breaking with translate=true.
     const query = querystring.stringify(newOptions)
     const fullUrl = url + basePath + path + '?' + query
     //console.log('FFLogs request: ',  fullUrl)

@@ -24,7 +24,10 @@ const FFLogsResources = {
     'Magic Vulnerability Up': 1000494,
     'Physical Vulnerability Up': 1000493,
     'Brotherhood': 1001182,
-    'Embolden': 1001297
+    'Embolden': 1001297,
+    'Enhanced Royal Road': 1000816
+    //'Expanded Royal Road': 1000817,
+    //'Extended Royal Road': 1000818
   },
 
   critModifier: critModifier,
@@ -32,9 +35,9 @@ const FFLogsResources = {
 
   buffs: {
     'Trick Attack': {bonus: 0.1, job: 'Ninja', type: 'aoe', debuff: true},
-    'The Balance': {bonus: 0.05, job: 'Astrologian', type: 'aoe', buff: true, soloBonus: 0.15},
-    'The Spear': {bonus: 0.05 * critModifier, job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, soloBonus: 0.15 * critModifier},
-    'The Arrow': {bonus: hasteStaticBuff(0.05), job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, soloBonus: hasteStaticBuff(0.15)},
+    'The Balance': {bonus: 0.05, job: 'Astrologian', type: 'aoe', buff: true, isCard: true},
+    'The Spear': {bonus: 0.05 * critModifier, job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, isCard: true},
+    'The Arrow': {bonus: hasteStaticBuff(0.05), job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, isCard: true},
     'Foe Requiem': {bonus: 0.03, job: 'Bard', type: 'aoe', debuff: true},
     'Hypercharge': {bonus: 0.06, job: 'Machinist', type: 'aoe', debuff: true},
     'Devotion': {bonus: 0.02, job: 'Summoner', type: 'aoe', buff: true},
@@ -53,7 +56,10 @@ const FFLogsResources = {
     'Embolden[2]': {bonus: 0.04, job: 'RedMage', type: 'aoe', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
     'Embolden[1]': {bonus: 0.02, job: 'RedMage', type: 'aoe', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
     'Magic Vulnerability Up': {bonus: 0.1, job: 'Summoner', type: 'solo', debuff: true, affected: ['Scholar', 'WhiteMage', 'BlackMage', 'RedMage']},
-    'Brotherhood': {bonus: 0.05, job: 'Monk', type: 'solo', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior']}
+    'Brotherhood': {bonus: 0.05, job: 'Monk', type: 'solo', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior']},
+    'Enhanced Royal Road': {isRoyalRoad: true, buff: true},
+    //'Expanded Royal Road': {isRoyalRoad: true, buff: true},
+    //'Extended Royal Road': {isRoyalRoad: true, buff: true}
   },
 
   worlds: {
