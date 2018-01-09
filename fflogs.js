@@ -126,35 +126,45 @@ class FFLogs {
             }
             resultBuffs = resultBuffs.filter(b => resources.buffs[b.name].buff)
 
+
             resultBuffs.forEach(result => {
               const resultDetails = details.find(b => b.abilityId === result.guid)
               if (resultDetails) {
+                const bandsMap = {}
                 resultDetails.buff.auras.forEach(buffDetail => {
                   if (buffDetail.type !== 'Pet') {
-                    result.bands.forEach(b => {
-                      if (!b.originalStart) {
-                        b.originalStart = b.startTime
-                        b.originalEnd = b.endTime
-                      }
-                      const resultBands = buffDetail.bands.filter(band => {
-                        return band.startTime >= b.originalStart && band.endTime <= b.originalEnd
-                      })
-                      if (resultBands && resultBands.length) {
-                        b.targets = b.targets || []
-                        resultBands.forEach(resultBand => {
-                          if (!b.targets.length) {
-                            b.startTime = resultBand.startTime
-                            b.endTime = resultBand.endTime
-                          } else {
-                            b.startTime = resultBand.startTime < b.startTime ? resultBand.startTime : b.startTime
-                            b.endTime = resultBand.endTime > b.endTime ? resultBand.endTime : b.endTime
+                    buffDetail.bands.forEach(band => {
+                      const isCard = (result.name.indexOf('The ') !== -1)
+                      let key = getKey(band.startTime, band.endTime)
+                      if (isCard && band.endTime - band.startTime > 60000) band.isExpandedCard = true
+                      const checkBands = (start, end) => {
+                        for (var bKey in bandsMap) {
+                          const b = bandsMap[bKey]
+                          if (start > b.startTime - 4000 && start < b.startTime + 4000) {
+                            if (end > b.endTime - 4000 && end < b.endTime + 4000) return getKey(b.startTime, b.endTime)
+                            if ((isCard !== -1) && end > b.endTime - 18000 && end < b.endTime + 18000) {
+                              band.timeDilatedAOE = b
+                              return false
+                            }
                           }
-                        })
-                        b.targets.push(buffDetail.name)
+                        }
+                        return false
+                      }
+                      if (!bandsMap[key]) {
+                        const closeKey = checkBands(band.startTime, band.endTime)
+                        if (!closeKey) {
+                          band.targets = [buffDetail.name]
+                          bandsMap[key] = band
+                        } else {
+                          bandsMap[closeKey].targets.push(buffDetail.name)
+                        }
+                      } else {
+                        bandsMap[key].targets.push(buffDetail.name)
                       }
                     })
                   }
                 })
+                result.bands = Object.values(bandsMap)
               }
             })
             const results = resultBuffs.concat(resultDebuffs)
@@ -204,7 +214,7 @@ class FFLogs {
             if (!damageDone || damageDone.error) {
               reject(damageDone)
             } else {
-              resolve({buff: buff, targets: band.targets || [], damageDone: damageDone, start: band.startTime, end: band.endTime})
+              resolve({buff: buff, targets: band.targets || [], damageDone: damageDone, start: band.startTime, end: band.endTime, timeDilatedAOE: band.timeDilatedAOE, isExpandedCard: band.isExpandedCard})
             }
           })
         }))
@@ -222,8 +232,14 @@ class FFLogs {
           if (!targeted && debuff) targeted = true
           if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
           if (targeted) {
-            value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0, isSolo: value.targets.length === 1}
-            value.buff.entries[entry.name].total += entry.total
+            const isSolo = (!value.timeDilatedAOE && value.targets.length === 1)
+            let soloBonus = isSolo && resources.buffs[value.buff.name].soloBonus ? resources.buffs[value.buff.name].soloBonus : 0
+            if (isSolo && value.isExpandedCard) soloBonus /= 2
+            const total = ((entry.total * (resources.buffs[value.buff.name].bonus + soloBonus)) / (1 + (resources.buffs[value.buff.name].bonus + soloBonus)))
+            value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0}
+            value.buff.entries[entry.name].totalBefore = value.buff.entries[entry.name].totalBefore || 0
+            value.buff.entries[entry.name].totalBefore += entry.total
+            value.buff.entries[entry.name].total += total
           }
         })
       })
@@ -233,12 +249,11 @@ class FFLogs {
         buff.total = 0
         for (let entryKey in buff.entries) {
           const entry = buff.entries[entryKey]
-          const soloBonus = entry.isSolo && resources.buffs[buff.name].soloBonus ? resources.buffs[buff.name].soloBonus : 0
-          entry.dps = entry.total / encounter.totalTime * 1000
-          entry.dpsContribution = (entry.dps * (resources.buffs[buff.name].bonus + soloBonus)) / (1 + (resources.buffs[buff.name].bonus + soloBonus))
+          entry.dps = entry.totalBefore / encounter.totalTime * 1000
+          entry.dpsContribution = entry.total / encounter.totalTime * 1000
           if (entry.type !== resources.buffs[buff.name].job) {
             buff.dps += entry.dpsContribution
-            buff.total += ((entry.total * (resources.buffs[buff.name].bonus + soloBonus)) / (1 + (resources.buffs[buff.name].bonus + soloBonus)))
+            buff.total += entry.total
           }
         }
         buff.entries = Object.values(buff.entries)
@@ -377,6 +392,10 @@ function intervalObj(s) {
   var hrs = (s - mins) / 60;
 
   return {hours:hrs, minutes: mins, seconds: secs, milliseconds: ms};
+}
+
+function getKey(start, end) {
+  return (parseInt(start / 1000) + '_' + parseInt(end / 1000))
 }
 
 function timeStr(timeObj) {

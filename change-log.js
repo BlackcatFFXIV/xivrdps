@@ -1,6 +1,15 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('01-09-2018'),
+      description: '',
+      list: [
+        'Expanded cards are now checked if the card buff lasted for >=60s. All other solo cards will still be checked as Enhanced for now, until we can check the Royal Road.',
+        'Overwritten buffs are now handled separately.'
+      ]
+    },
+
+    {
       date: new Date('12-21-2017'),
       description: '',
       list: [
