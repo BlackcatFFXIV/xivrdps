@@ -1,6 +1,7 @@
 const resources = require('./fflogs-resources')
 const changeLog = require('./change-log')
 const Result = require('./models/result')
+const debug = false
 
 const encounterIds = [
   {name: 'Ultimate', encounters: {'Unending Coil': '1039'}},
@@ -96,10 +97,14 @@ class Views {
               }
             }
 
-            if (fightId > -1) {
-              Result.findOne({id: encounterId, fightId: fightId}).exec(getEncounter)
+            if (!debug) {
+              if (fightId > -1) {
+                Result.findOne({id: encounterId, fightId: fightId}).exec(getEncounter)
+              } else {
+                Result.findLatest(encounterId, getEncounter)
+              }
             } else {
-              Result.findLatest(encounterId, getEncounter)
+              getEncounterFromFFLogs()
             }
           } catch (e) {
             getEncounterFromFFLogs()
@@ -146,8 +151,10 @@ class Views {
                         contribution: this.fflogs.damageContributionSimple(contribution)
                       }
                       res.render('encounters', this.playersView(data))
-                      const encounterResultModel = new Result(data)
-                      encounterResultModel.save()
+                      if (!debug) {
+                        const encounterResultModel = new Result(data)
+                        encounterResultModel.save()
+                      }
                     })
                   })
                 })
@@ -174,6 +181,7 @@ class Views {
   }
 
   playersView(data) {
+    const encounter = data.encounter
     data.totalPersonalDPS = 0
     data.totalRaidDPS = 0
     data.totalContribution = 0
@@ -192,8 +200,8 @@ class Views {
         entry.contributionDPS = 0
         entry.contributions = []
         let dpsPenalty = 0
-        const buffs = data.contribution.filter(b => resources.buffs[b.name].job === entry.type)
-        const otherBuffs = data.contribution.filter(b => resources.buffs[b.name].job !== entry.type)
+        const buffs = data.contribution.filter(b => resources.buffs[encounter.patch][b.name].job === entry.type)
+        const otherBuffs = data.contribution.filter(b => resources.buffs[encounter.patch][b.name].job !== entry.type)
         const jobAmount = data.jobAmount[entry.type] || 1
         entry.fromOtherBuffs = []
         otherBuffs.forEach(buff => {
@@ -205,7 +213,7 @@ class Views {
           }
         })
         buffs.forEach(buff => {
-          const disclaimer = resources.buffs[buff.name].critBuff ? '*' : ''
+          const disclaimer = resources.buffs[encounter.patch][buff.name].critBuff ? '*' : ''
           let dps = buff.dps / jobAmount
           entry.contributions.push({ name: buff.name, icon: buff.icon, dps: dps.toFixed(1) + disclaimer })
           entry.contributionDPS += dps

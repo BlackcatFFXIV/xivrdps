@@ -5,6 +5,7 @@ const request = require('requestretry')
 const querystring = require('querystring')
 const resources = require('./fflogs-resources')
 const DamageDone = require('./models/damage-done')
+const dateOptions = {year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}
 
 class FFLogs {
   constructor() {
@@ -26,11 +27,15 @@ class FFLogs {
         if (!encounter) {
           cb({error: 'No encounters found.'})
         } else {
+          encounter.date = new Date(result.start)
+          encounter.patch = this.getPatch(encounter.date)
+          encounter.patchStr = (encounter.date < resources.patches['4.0'].release) ? "[<4.0] WARNING: This may not be using the correct buffs!" : ("[" + encounter.patch + "]")
+          encounter.dateStr = encounter.date.toLocaleTimeString('en-us', dateOptions)
           encounter.fightId = fightId
           encounter.id = encounterId
           encounter.name = this.bossNameFromEncounter(result, encounter)
           encounter.totalTime = encounter.end_time - encounter.start_time
-          encounter.supportsRoyalRoad = (new Date(result.start) > new Date('2017-10-11'))
+          encounter.supportsRoyalRoad = (encounter.date > resources.patches['4.1'].release)
           encounter.cardsAmount = 0
           encounter.soloCards = 0
           encounter.oldRoyalRoad = 'Enhanced Royal Road'
@@ -38,6 +43,14 @@ class FFLogs {
         }
       }
     })
+  }
+
+  getPatch(date) {
+    let patch = '4.0'
+    Object.keys(resources.patches).forEach(patchName => {
+      if (date > resources.patches[patchName].release) patch = patchName
+    })
+    return patch
   }
 
   damageDone(encounter, options, cb) {
@@ -83,11 +96,11 @@ class FFLogs {
       end: options.end || encounter.end_time
     })
     const buffsToCheck = Object.values(resources.buffIds)
-    const soloBuffTypes = Object.keys(resources.buffs).filter(t => resources.buffs[t].type === 'solo')
+    const soloBuffTypes = Object.keys(resources.buffs[encounter.patch]).filter(t => resources.buffs[encounter.patch][t].type === 'solo')
 
     this.request('tables/buffs/' + encounter.id, options, resultBuffs => {
       if (resultBuffs && !resultBuffs.error) {
-        resultBuffs = resultBuffs.auras.filter(a => (buffsToCheck.indexOf(a.guid) != -1 || resources.buffIds[a.name]) && (a.guid !== resources.buffs[a.name].excludeId))
+        resultBuffs = resultBuffs.auras.filter(a => (buffsToCheck.indexOf(a.guid) != -1 || resources.buffIds[a.name]) && (a.guid !== resources.buffs[encounter.patch][a.name].excludeId))
 
         const promises = []
         //const soloBuffs = resultBuffs.filter(a => soloBuffTypes.indexOf(a.name) != -1)
@@ -123,12 +136,12 @@ class FFLogs {
                   debuff.name = 'Hypercharge'
                 }
               })
-              resultDebuffs = resultDebuffs.filter(b => resources.buffs[b.name].debuff)
+              resultDebuffs = resultDebuffs.filter(b => resources.buffs[encounter.patch][b.name].debuff)
             } else if (resultDebuffs && resultDebuffs.error) {
               cb(resultDebuffs.error)
               return
             }
-            resultBuffs = resultBuffs.filter(b => resources.buffs[b.name].buff)
+            resultBuffs = resultBuffs.filter(b => resources.buffs[encounter.patch][b.name].buff)
             resultBuffs.forEach(result => {
               const resultDetails = details.find(b => b.abilityId === result.guid)
               if (resultDetails) {
@@ -136,7 +149,7 @@ class FFLogs {
                 resultDetails.buff.auras.forEach(buffDetail => {
                   if (buffDetail.type !== 'Pet') {
                     buffDetail.bands.forEach(band => {
-                      const isCard = resources.buffs[result.name].isCard
+                      const isCard = resources.buffs[encounter.patch][result.name].isCard
                       let key = getKey(band.startTime, band.endTime)
                       if (isCard) encounter.cardsAmount++
                       if (isCard && band.endTime - band.startTime > 60000) band.isExtendedCard = true
@@ -211,9 +224,9 @@ class FFLogs {
 
     buffs.filter(b => b.name === 'Embolden').forEach(b => this.splitEmbolden(buffs, b))
     buffs.forEach(buff => {
-      const bonus = resources.buffs[buff.name].bonus
-      if (!resources.buffs[buff.name].bonus) {
-        if (resources.buffs[buff.name].isRoyalRoad) {
+      const bonus = resources.buffs[encounter.patch][buff.name].bonus
+      if (!resources.buffs[encounter.patch][buff.name].bonus) {
+        if (resources.buffs[encounter.patch][buff.name].isRoyalRoad) {
           royalRoads.push(buff)
         }
         return
@@ -256,17 +269,17 @@ class FFLogs {
       values.forEach(value => {
         const simpleDamage = this.damageDoneSimple(value.damageDone)
         simpleDamage.forEach(entry => {
-          const type = resources.buffs[value.buff.name].type
-          const affected = resources.buffs[value.buff.name].affected
-          const debuff = resources.buffs[value.buff.name].debuff
-          const isCard = resources.buffs[value.buff.name].isCard
+          const type = resources.buffs[encounter.patch][value.buff.name].type
+          const affected = resources.buffs[encounter.patch][value.buff.name].affected
+          const debuff = resources.buffs[encounter.patch][value.buff.name].debuff
+          const isCard = resources.buffs[encounter.patch][value.buff.name].isCard
           let targeted = (value.targets.indexOf(entry.name) !== -1)
           if (!targeted && debuff) targeted = true
           if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
           if (targeted) {
             const isSolo = value.isSolo
             if (isCard) consumeRoyalRoad(value)
-            const bonus = resources.buffs[value.buff.name].bonus
+            const bonus = resources.buffs[encounter.patch][value.buff.name].bonus
             let soloBonus = 1
             if (isCard && isSolo) {
               if (!encounter.supportsRoyalRoad) value.buff.royalRoad = encounter.oldRoyalRoad
@@ -282,7 +295,7 @@ class FFLogs {
       })
 
       buffs.forEach(buff => {
-        const bonus = resources.buffs[buff.name].bonus
+        const bonus = resources.buffs[encounter.patch][buff.name].bonus
         if (!bonus) {
           buff.entries = []
           return
@@ -293,7 +306,7 @@ class FFLogs {
           const entry = buff.entries[entryKey]
           entry.dps = entry.totalBefore / encounter.totalTime * 1000
           entry.dpsContribution = entry.total / encounter.totalTime * 1000
-          if (entry.type !== resources.buffs[buff.name].job) {
+          if (entry.type !== resources.buffs[encounter.patch][buff.name].job) {
             buff.dps += entry.dpsContribution
             buff.total += entry.total
           }
@@ -371,9 +384,6 @@ class FFLogs {
     } else if (resources.worlds.EU.indexOf(worldName) !== -1) {
       characterRegion = 'EU'
     }
-    const dateOptions = {
-      year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
-    }
     const fullUrl = url + '/v1/parses/character/' + characterName + '/' + worldName + '/' + characterRegion + '?api_key=' + apiKey
     request({url: fullUrl, json: true}, (err, res, body) => {
       if (err || !body || !body.length) {
@@ -398,9 +408,6 @@ class FFLogs {
   }
 
   listingData(encounterId, cb) {
-    const dateOptions = {
-      year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
-    }
     const fullUrl = url + '/v1/rankings/encounter/' + encounterId + '?metric=speed&api_key=' + apiKey
     request({url: fullUrl, json: true}, (err, res, body) => {
       if (err) {

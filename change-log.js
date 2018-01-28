@@ -1,6 +1,14 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('01-27-2018'),
+      description: '',
+      list: [
+        'Patch version is now tracked (starting with 4.0). If a buff had changes within an encounter\'s patch, it will use the correct version of the buff. Recaching will need to be done, since this does affect old logs.'
+      ]
+    },
+
+    {
       date: new Date('01-09-2018'),
       description: '',
       list: [
