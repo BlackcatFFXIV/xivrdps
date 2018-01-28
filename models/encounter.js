@@ -17,7 +17,11 @@ const Encounter = new mongoose.Schema({
   zoneID: Number,
   zoneName: String,
   fightId: Number,
-  totalTime: Number
+  totalTime: Number,
+  patch: String,
+  patchStr: String,
+  date: Date,
+  dateStr: String
 })
 
 module.exports = Encounter
