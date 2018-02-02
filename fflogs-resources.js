@@ -180,7 +180,7 @@ const FFLogsResources = {
 }
 
 // Default params to show on each, even in light resources
-const defaultParamsToShow = ['icon', 'job', 'type', 'buff', 'debuff']
+const defaultParamsToShow = ['icon', 'job', 'type', 'buff', 'debuff', 'isCard', 'isRoyalRoad']
 
 // Apply the state of each buff through the patches
 let previousPatchBuffs = null
