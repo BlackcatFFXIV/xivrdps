@@ -4,6 +4,7 @@ const Result = require('./models/result')
 const debug = false
 
 const encounterIds = [
+  {name: 'Sigmascape (Savage)', encounters: {'Phantom Train': '51', 'Demon Chadarnook': '52', 'Guardian': '53', 'Kefka': '54', 'God Kefka': '55'}},
   {name: 'Ultimate', encounters: {'Unending Coil': '1039'}},
   {name: 'Deltascape (Savage)', encounters: {'Alte Roite': '42', 'Catastrophe': '43', 'Halicarnassus': '44', 'Exdeath': '45', 'Neo Exdeath': '46'}},
   {name: 'Trials', encounters: {'Susano': '1036', 'Lakshmi': '1037', 'Shinryu': '1038'}},
