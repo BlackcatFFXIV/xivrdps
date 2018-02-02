@@ -236,7 +236,7 @@ const parentViewTransforms = {
     const buffs = Object.keys(obj.obj).filter(buffName => obj.obj[buffName] && obj.obj[buffName].bonus).map(buffName => {
       const buff = obj.obj[buffName]
       const icon = buff.icon ? `<img src="/img/buffs/${buff.icon}.png" />` : ''
-      const jobIcon = job => job ? `<img src="img/class/${job}.png" alt="${job}" />` : ''
+      const jobIcon = (job, size) => job ? `<img src="img/class/${job}.png" alt="${job}" width="${size}" height="${size}" />` : ''
       const disclaimer = resources.disclaimers[buff.type] || ''
       let buffText = ''
       buffName = buffName.replace(/\[(\S)\]/g, '<sup>$1</sup>')
@@ -244,7 +244,7 @@ const parentViewTransforms = {
       if (buff.debuff) buffText = 'Debuff'
       const head = `
         <div class="buff-definition">
-          <div class="buff-name">${icon} ${buffName} ${jobIcon(buff.job)}</div>
+          <div class="buff-name">${icon} ${buffName} ${jobIcon(buff.job, 32)}</div>
             <div class="buff-content">
       `
       let content = ''
@@ -259,7 +259,7 @@ const parentViewTransforms = {
         <div class="buff-param">Type: ${buff.typeStr} ${buffText}</div>
       `
       if (buff.affected && buff.affected.length) {
-        content += `<div class="buff-param buff-bonus">Affected: ${buff.affected.map(jobIcon).join(' ')}</div>`
+        content += `<div class="buff-param buff-bonus">Affected: ${buff.affected.map(jobName => jobIcon(jobName, 20)).join(' ')}</div>`
       }
       if (buff.id) content += `<div class="buff-param">ID: ${buff.id}</div>`
       const foot = "</div></div>"
