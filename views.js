@@ -3,22 +3,6 @@ const changeLog = require('./change-log')
 const Result = require('./models/result')
 const debug = false
 
-const encounterIds = [
-  {name: 'Sigmascape (Savage)', encounters: {'Phantom Train': '51', 'Demon Chadarnook': '52', 'Guardian': '53', 'Kefka': '54', 'God Kefka': '55'}},
-  {name: 'Ultimate', encounters: {'Unending Coil': '1039'}},
-  {name: 'Deltascape (Savage)', encounters: {'Alte Roite': '42', 'Catastrophe': '43', 'Halicarnassus': '44', 'Exdeath': '45', 'Neo Exdeath': '46'}},
-  {name: 'Trials', encounters: {'Susano': '1036', 'Lakshmi': '1037', 'Shinryu': '1038'}},
-  {name: 'Rabanastre', encounters: {'Mateus, the Corrupt': '2008', 'Hashmal, Bringer of Order': '2009', 'Rofocale': '2010', 'Argath Thadalfus': '2011'}}
-]
-
-encounterIds.forEach(encounter => {
-  const encounters = []
-  for (var key in encounter.encounters) {
-    encounters.push({name: key, id: encounter.encounters[key]})
-  }
-  encounter.encounters = encounters
-})
-
 class Views {
   constructor(app, fflogs) {
     this.app = app
@@ -27,7 +11,7 @@ class Views {
     this.views = {
       '/': (req, res) => {
         res.render('index', {
-          encounterIds: encounterIds,
+          encounterIds: resources.encounters,
           worlds: resources.worlds
         })
       },
@@ -41,7 +25,7 @@ class Views {
         fflogs.listingData(id, results => {
           if (results && results.rankings) {
             let encounterName = ''
-            encounterIds.forEach(category => {
+            resources.encounters.forEach(category => {
               if (encounterName) return
               category.encounters.forEach(encounter => {
                 if (encounter.id === id) encounterName = encounter.name

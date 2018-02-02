@@ -79,6 +79,14 @@ const FFLogsResources = {
     }
   },
 
+  encounters: [
+    {name: 'Sigmascape (Savage)', encounters: {'Phantom Train': '51', 'Demon Chadarnook': '52', 'Guardian': '53', 'Kefka': '54', 'God Kefka': '55'}},
+    {name: 'Ultimate', encounters: {'Unending Coil': '1039'}},
+    {name: 'Deltascape (Savage)', encounters: {'Alte Roite': '42', 'Catastrophe': '43', 'Halicarnassus': '44', 'Exdeath': '45', 'Neo Exdeath': '46'}},
+    {name: 'Trials', encounters: {'Susano': '1036', 'Lakshmi': '1037', 'Shinryu': '1038'}},
+    {name: 'Rabanastre', encounters: {'Mateus, the Corrupt': '2008', 'Hashmal, Bringer of Order': '2009', 'Rofocale': '2010', 'Argath Thadalfus': '2011'}}
+  ],
+
   worlds: {
     NA: [
       'Adamantoise',
@@ -171,6 +179,14 @@ Object.keys(FFLogsResources.buffs).forEach(patch => {
     FFLogsResources.buffs[patch] = patchBuffNew
   }
   previousPatchBuffs = FFLogsResources.buffs[patch]
+})
+
+resources.encounters.forEach(encounter => {
+  const encounters = []
+  for (var key in encounter.encounters) {
+    encounters.push({name: key, id: encounter.encounters[key]})
+  }
+  encounter.encounters = encounters
 })
 
 module.exports = FFLogsResources
