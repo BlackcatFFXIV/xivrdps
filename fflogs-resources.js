@@ -181,7 +181,7 @@ Object.keys(FFLogsResources.buffs).forEach(patch => {
   previousPatchBuffs = FFLogsResources.buffs[patch]
 })
 
-resources.encounters.forEach(encounter => {
+FFLogsResources.encounters.forEach(encounter => {
   const encounters = []
   for (var key in encounter.encounters) {
     encounters.push({name: key, id: encounter.encounters[key]})
