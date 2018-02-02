@@ -119,3 +119,24 @@ input {
 hr {
   border-color: #444;
 }
+
+.buff-name {
+  font-size: 18px;
+}
+
+.buff-definition {
+  background-color: #333;
+  border-radius: 5px;
+  width: 325px;
+  height: 260px;
+  display: inline-table;
+  padding: 20px;
+  margin: 10px;
+}
+
+.buff-content {
+}
+
+.buff-param {
+  margin: 10px 0;
+}

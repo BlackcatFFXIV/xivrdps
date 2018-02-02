@@ -1,6 +1,15 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('02-02-2018'),
+      description: 'Definitions page added.',
+      list: [
+        'The definitions page was added in order to show all buff metadata to people viewing this site. All calculations should be completely transparent on how they are done, and if something doesn\'t seem correct, they can contact me to fix it, or submit a pull request with the fix themselves.',
+        'The disclaimers for haste buffs has been changed to ^, the disclaimers for direct hit buffs has been changed to `, critical hit disclaimers are still *. Now you can distinguish the type from it.'
+      ]
+    },
+
+    {
       date: new Date('01-27-2018'),
       description: '',
       list: [

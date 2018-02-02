@@ -42,30 +42,30 @@ const FFLogsResources = {
 
   buffs: {
     '4.0': {
-      'Trick Attack': {bonus: 0.1, job: 'Ninja', type: 'aoe', debuff: true},
-      'The Balance': {bonus: 0.1, job: 'Astrologian', type: 'aoe', buff: true, isCard: true},
-      'The Spear': {bonus: 0, job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, isCard: true},
-      'The Arrow': {bonus: hasteStaticBuff(0.05), job: 'Astrologian', type: 'aoe', critBuff: true, buff: true, isCard: true},
-      'Foe Requiem': {bonus: 0.03, job: 'Bard', type: 'aoe', debuff: true},
-      'Hypercharge': {bonus: 0.05, job: 'Machinist', type: 'aoe', debuff: true},
-      'Devotion': {bonus: 0.02, job: 'Summoner', type: 'aoe', buff: true},
-      'Fey Wind': {bonus: hasteStaticBuff(0.03), job: 'Scholar', type: 'aoe', critBuff: true, buff: true},
-      'Chain Stratagem': {bonus: 0.15 * critModifier, job: 'Scholar', type: 'aoe', critBuff: true, debuff: true},
-      'Battle Voice': {bonus: 0.15 * dhModifier, job: 'Bard', type: 'aoe', critBuff: true, buff: true},
-      'Critical Up': {bonus: 0.02 * critModifier, job: 'Bard', type: 'aoe', critBuff: true, buff: true},
-      'Battle Litany': {bonus: 0.15 * critModifier, job: 'Dragoon', type: 'aoe', critBuff: true, buff: true},
-      'Left Eye': {bonus: 0.05, job: 'Dragoon', type: 'solo', buff: true},
-      'Piercing Resistance Down': {bonus: 0.05, job: 'Dragoon', type: 'solo', debuff: true, affected: ['Bard', 'Machinist']},
-      'Physical Vulnerability Up': {bonus: 0.02, job: 'Summoner', type: 'solo', debuff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior']},
-      'Embolden': {bonus: 0, job: 'RedMage', type: 'aoe', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
-      'Embolden[5]': {bonus: 0.1, job: 'RedMage', type: 'aoe', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
-      'Embolden[4]': {bonus: 0.08, job: 'RedMage', type: 'aoe', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
-      'Embolden[3]': {bonus: 0.06, job: 'RedMage', type: 'aoe', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
-      'Embolden[2]': {bonus: 0.04, job: 'RedMage', type: 'aoe', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
-      'Embolden[1]': {bonus: 0.02, job: 'RedMage', type: 'aoe', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
-      'Magic Vulnerability Up': {bonus: 0.1, job: 'Summoner', type: 'solo', debuff: true, affected: ['Scholar', 'WhiteMage', 'BlackMage', 'RedMage']},
-      'Brotherhood': {bonus: 0.05, job: 'Monk', type: 'solo', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior']},
-      'Enhanced Royal Road': {isRoyalRoad: true, buff: true},
+      'Trick Attack': {bonus: 0.1, job: 'Ninja', debuff: true, icon: '015000-015020'},
+      'The Balance': {bonus: 0.1, job: 'Astrologian', buff: true, isCard: true, icon: '013000-013204'},
+      'The Spear': {bonus: 0, job: 'Astrologian', type: 'crit', buff: true, isCard: true, icon: '013000-013207'},
+      'The Arrow': {bonus: hasteStaticBuff(0.05), job: 'Astrologian', type: 'haste', buff: true, isCard: true, icon: '013000-013206'},
+      'Foe Requiem': {bonus: 0.03, job: 'Bard', debuff: true, icon: '012000-012608'},
+      'Hypercharge': {bonus: 0.05, job: 'Machinist', debuff: true, icon: '015000-015020'},
+      'Devotion': {bonus: 0.02, job: 'Summoner', buff: true, icon: '012000-012681'},
+      'Fey Wind': {bonus: hasteStaticBuff(0.03), job: 'Scholar', type: 'haste', buff: true, icon: '012000-012807'},
+      'Chain Stratagem': {bonus: 0.15 * critModifier, job: 'Scholar', type: 'crit', debuff: true, icon: '012000-012809'},
+      'Battle Voice': {bonus: 0.15 * dhModifier, job: 'Bard', type: 'dh', buff: true, icon: '012000-012601'},
+      'Critical Up': {bonus: 0.02 * critModifier, job: 'Bard', type: 'crit', buff: true, icon: '012000-012613'},
+      'Battle Litany': {bonus: 0.15 * critModifier, job: 'Dragoon', type: 'crit', buff: true, icon: '012000-012578'},
+      'Left Eye': {bonus: 0.05, job: 'Dragoon', buff: true, icon: '012000-012582'},
+      'Piercing Resistance Down': {bonus: 0.05, job: 'Dragoon', debuff: true, affected: ['Bard', 'Machinist'], icon: '015000-015065'},
+      'Physical Vulnerability Up': {bonus: 0.02, job: 'Summoner', debuff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], icon: '015000-015053'},
+      'Embolden': {bonus: 0, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
+      'Embolden[5]': {bonus: 0.1, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden5'},
+      'Embolden[4]': {bonus: 0.08, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden4'},
+      'Embolden[3]': {bonus: 0.06, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden3'},
+      'Embolden[2]': {bonus: 0.04, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden2'},
+      'Embolden[1]': {bonus: 0.02, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden1'},
+      'Magic Vulnerability Up': {bonus: 0.1, job: 'Summoner', debuff: true, affected: ['Scholar', 'WhiteMage', 'BlackMage', 'RedMage'], icon: '015000-015057'},
+      'Brotherhood': {bonus: 0.05, job: 'Monk', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], icon: '012000-012529'},
+      'Enhanced Royal Road': {isRoyalRoad: true, buff: true}
     },
     '4.05': {
       'The Spear': {bonus: 0.05 * critModifier},
@@ -78,6 +78,8 @@ const FFLogsResources = {
       'Hypercharge': {bonus: 0.05},
     }
   },
+
+  disclaimers: {crit: '*', dh: '`', haste: '^'},
 
   encounters: [
     {name: 'Sigmascape (Savage)', encounters: {'Phantom Train': '51', 'Demon Chadarnook': '52', 'Guardian': '53', 'Kefka': '54', 'God Kefka': '55'}},
@@ -165,21 +167,49 @@ const FFLogsResources = {
   }
 }
 
+// Default params to show on each, even in light resources
+const defaultParamsToShow = ['icon', 'job', 'type', 'buff', 'debuff']
+
 // Apply the state of each buff through the patches
 let previousPatchBuffs = null
+FFLogsResources.buffsLight = {}
 Object.keys(FFLogsResources.buffs).forEach(patch => {
   const base = '4.0'
+  const patchBuff = FFLogsResources.buffs[patch]
+  FFLogsResources.buffsLight[patch] = patchBuff
   if (patch !== base) {
-    const patchBuff = FFLogsResources.buffs[patch]
     const patchInfo = FFLogsResources.patches[patch]
     const patchBuffNew = {}
     Object.keys(previousPatchBuffs).forEach(buffName => {
       patchBuffNew[buffName] = Object.assign({}, previousPatchBuffs[buffName], patchBuff[buffName])
+      defaultParamsToShow.forEach(paramName => {
+        if (patchBuff[buffName] && !patchBuff[buffName][paramName]) patchBuff[buffName][paramName] = patchBuffNew[buffName][paramName]
+      })
     })
     FFLogsResources.buffs[patch] = patchBuffNew
+  } else {
+    Object.keys(patchBuff).forEach(buffName => {
+      if (!patchBuff[buffName].type) patchBuff[buffName].type = 'damage'
+    })
   }
   previousPatchBuffs = FFLogsResources.buffs[patch]
 })
+
+const typesFull = {
+  crit: 'Critical Hit',
+  dh: 'Direct Hit',
+  haste: 'Haste',
+  damage: 'Damage'
+}
+
+Object.keys(FFLogsResources.buffsLight).forEach(patch => {
+  Object.keys(FFLogsResources.buffsLight[patch]).forEach(buffName => {
+    const buff = FFLogsResources.buffsLight[patch][buffName]
+    if (buff.bonus !== undefined) buff.bonusPercentage = parseFloat(((buff.bonus) * 100).toFixed(1)) + '%'
+    if (buff.type !== undefined) buff.typeStr = typesFull[buff.type]
+    buff.id = FFLogsResources.buffIds[buffName]
+  });
+});
 
 FFLogsResources.encounters.forEach(encounter => {
   const encounters = []

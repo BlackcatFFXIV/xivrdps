@@ -96,14 +96,12 @@ class FFLogs {
       end: options.end || encounter.end_time
     })
     const buffsToCheck = Object.values(resources.buffIds)
-    const soloBuffTypes = Object.keys(resources.buffs[encounter.patch]).filter(t => resources.buffs[encounter.patch][t].type === 'solo')
 
     this.request('tables/buffs/' + encounter.id, options, resultBuffs => {
       if (resultBuffs && !resultBuffs.error) {
         resultBuffs = resultBuffs.auras.filter(a => (buffsToCheck.indexOf(a.guid) != -1 || resources.buffIds[a.name]) && (a.guid !== resources.buffs[encounter.patch][a.name].excludeId))
 
         const promises = []
-        //const soloBuffs = resultBuffs.filter(a => soloBuffTypes.indexOf(a.name) != -1)
         resultBuffs.forEach(b => {
           promises.push(new Promise((resolve, reject) => {
             const newOptions = Object.assign({}, options, { abilityid: b.guid })

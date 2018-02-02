@@ -1,0 +1,34 @@
+{{> header}}
+
+<div class="container container-inner">
+  <div class="container container-inner content content-title">
+    <h3>Definitions</h3>
+  </div>
+  <div class="container container-inner content">
+    <div class="selection-group">
+      <h3>Buffs</h3>
+
+      {{# buffsLight}}
+        {{{buffs}}}
+      {{/buffsLight}}
+    </div>
+
+    <div class="selection-group">
+      <h4>Info</h4>
+      At the moment, critical hit and direct hit buffs are treated as static damage buffs. The crit modifier used is 0.4666... and the direct hit modifier is half that.
+      <hr />
+      At the moment, all haste buffs are treated as static damage buffs. The function used for this is 1 / (1 - hasteBonus) - 1.
+      <hr />
+      If there is no "affected" list, assume the buff/debuff works on any job. The "affected" list will never include the job that applied the buff, as no contributions include the one that applied the buff on this site.
+      <hr />
+      Disclaimers: Critical Hit = * &nbsp;&nbsp;&nbsp; Direct Hit = ` &nbsp;&nbsp;&nbsp; Haste = ^
+      <br/>In the way critical hit, direct hit, and haste work, you would need a full timeline in order to properly calculate their worth. Therefore they are given a static
+      damage buff, as stated above. Since this value will not be completely accurate (but will be consistent across parses on this site), one of these disclaimers will be put beside each type of buff/debuff.
+    </div>
+  </div>
+  <div class="container container-inner content content-small">
+    {{> links}}
+  </div>
+</div>
+
+{{> footer}}
