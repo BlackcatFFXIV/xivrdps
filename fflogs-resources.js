@@ -55,9 +55,9 @@ const FFLogsResources = {
   buffs: {
     '4.0': {
       'Trick Attack': {bonus: 0.1, job: 'Ninja', debuff: true, icon: '015000-015020'},
-      'The Balance': {bonus: 0.1, job: 'Astrologian', buff: true, isCard: true, icon: '013000-013204'},
+      'The Balance': {bonus: 0.2, job: 'Astrologian', buff: true, isCard: true, icon: '013000-013204'},
       'The Spear': {bonus: 0, job: 'Astrologian', type: 'crit', buff: true, isCard: true, icon: '013000-013207'},
-      'The Arrow': {bonus: hasteStaticBuff(0.05), job: 'Astrologian', type: 'haste', buff: true, isCard: true, icon: '013000-013206'},
+      'The Arrow': {bonus: hasteStaticBuff(0.1), job: 'Astrologian', type: 'haste', buff: true, isCard: true, icon: '013000-013206'},
       'Foe Requiem': {bonus: 0.03, job: 'Bard', debuff: true, icon: '012000-012608'},
       'Hypercharge': {bonus: 0.05, job: 'Machinist', debuff: true, icon: '015000-015020'},
       'Devotion': {bonus: 0.02, job: 'Summoner', buff: true, icon: '012000-012681'},
@@ -80,8 +80,8 @@ const FFLogsResources = {
       'Enhanced Royal Road': {isRoyalRoad: true, buff: true}
     },
     '4.05': {
-      'The Spear': {bonus: 0.05 * critModifier},
-      'The Balance': {bonus: 0.05}
+      'The Spear': {bonus: 0.1 * critModifier},
+      'The Balance': {bonus: 0.1}
     },
     '4.1': {
       'Hypercharge': {bonus: 0.06},

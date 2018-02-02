@@ -250,8 +250,8 @@ const parentViewTransforms = {
       let content = ''
       if (buff.isCard) {
         content += `
-          <div class="buff-param buff-bonus">Expanded Bonus: ${parseFloat((buff.bonus / 2 * 100).toFixed(1))}%${disclaimer}</div>
-          <div class="buff-param buff-bonus">Enhanced Bonus: ${parseFloat((buff.bonus * 2 * 100).toFixed(1))}%${disclaimer}</div>
+          <div class="buff-param buff-bonus">Expanded Bonus: ${parseFloat((buff.bonus * 0.5 * 100).toFixed(1))}%${disclaimer}</div>
+          <div class="buff-param buff-bonus">Enhanced Bonus: ${parseFloat((buff.bonus * 1.5 * 100).toFixed(1))}%${disclaimer}</div>
         `
       }
       content += `

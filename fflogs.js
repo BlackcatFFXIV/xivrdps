@@ -278,10 +278,10 @@ class FFLogs {
             const isSolo = value.isSolo
             if (isCard) consumeRoyalRoad(value)
             const bonus = resources.buffs[encounter.patch][value.buff.name].bonus
-            let soloBonus = 1
+            let soloBonus = isCard ? 0.5 : 1
             if (isCard && isSolo) {
               if (!encounter.supportsRoyalRoad) value.buff.royalRoad = encounter.oldRoyalRoad
-              soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 4 : 2
+              soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 1.5 : 1
             }
             const total = ((entry.total * (bonus * soloBonus)) / (1 + (bonus * soloBonus)))
             value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0}
