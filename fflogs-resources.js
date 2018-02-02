@@ -4,6 +4,18 @@ const hasteStaticBuff = (hasteBonus) => {
   return 1 / (1 - hasteBonus) - 1
 }
 
+function exclusionFilter(arr, excluded) {
+  return arr.filter(job => {
+    if (typeof excluded === 'string') return job !== excluded
+    if (typeof excluded === 'object' && excluded.length) return excluded.indexOf(job) === -1
+    return true
+  })
+}
+
+const physClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excluded)
+const magicClasses = excluded => exclusionFilter(['Astrologian', 'Scholar', 'WhiteMage', 'BlackMage', 'RedMage', 'Summoner'], excluded)
+const piercingClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon'], excluded)
+
 const FFLogsResources = {
   buffIds: {
     'Trick Attack': 1000638,
@@ -55,16 +67,16 @@ const FFLogsResources = {
       'Critical Up': {bonus: 0.02 * critModifier, job: 'Bard', type: 'crit', buff: true, icon: '012000-012613'},
       'Battle Litany': {bonus: 0.15 * critModifier, job: 'Dragoon', type: 'crit', buff: true, icon: '012000-012578'},
       'Left Eye': {bonus: 0.05, job: 'Dragoon', buff: true, icon: '012000-012582'},
-      'Piercing Resistance Down': {bonus: 0.05, job: 'Dragoon', debuff: true, affected: ['Bard', 'Machinist'], icon: '015000-015065'},
-      'Physical Vulnerability Up': {bonus: 0.02, job: 'Summoner', debuff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], icon: '015000-015053'},
-      'Embolden': {bonus: 0, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239},
-      'Embolden[5]': {bonus: 0.1, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden5'},
-      'Embolden[4]': {bonus: 0.08, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden4'},
-      'Embolden[3]': {bonus: 0.06, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden3'},
-      'Embolden[2]': {bonus: 0.04, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden2'},
-      'Embolden[1]': {bonus: 0.02, job: 'RedMage', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excludeId: 1001239, icon: 'embolden1'},
-      'Magic Vulnerability Up': {bonus: 0.1, job: 'Summoner', debuff: true, affected: ['Scholar', 'WhiteMage', 'BlackMage', 'RedMage'], icon: '015000-015057'},
-      'Brotherhood': {bonus: 0.05, job: 'Monk', buff: true, affected: ['Bard', 'Machinist', 'Dragoon', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], icon: '012000-012529'},
+      'Piercing Resistance Down': {bonus: 0.05, job: 'Dragoon', debuff: true, affected: piercingClasses('Dragoon'), icon: '015000-015065'},
+      'Physical Vulnerability Up': {bonus: 0.02, job: 'Summoner', debuff: true, affected: physClasses('Summoner'), icon: '015000-015053'},
+      'Embolden': {bonus: 0, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239},
+      'Embolden[5]': {bonus: 0.1, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden5'},
+      'Embolden[4]': {bonus: 0.08, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden4'},
+      'Embolden[3]': {bonus: 0.06, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden3'},
+      'Embolden[2]': {bonus: 0.04, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden2'},
+      'Embolden[1]': {bonus: 0.02, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden1'},
+      'Magic Vulnerability Up': {bonus: 0.1, job: 'Summoner', debuff: true, affected: magicClasses('Summoner'), icon: '015000-015057'},
+      'Brotherhood': {bonus: 0.05, job: 'Monk', buff: true, affected: physClasses('Monk'), icon: '012000-012529'},
       'Enhanced Royal Road': {isRoyalRoad: true, buff: true}
     },
     '4.05': {
