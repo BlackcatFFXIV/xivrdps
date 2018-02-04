@@ -52,6 +52,8 @@ const FFLogsResources = {
     '4.2': {release: new Date('2018-01-30 11:00:00Z')}
   },
 
+  specialBuffs: ['Radiant Shield'],
+
   buffs: {
     '4.0': {
       'Trick Attack': {bonus: 0.1, job: 'Ninja', debuff: true, icon: '015000-015020'},
@@ -77,7 +79,8 @@ const FFLogsResources = {
       'Embolden[1]': {bonus: 0.02, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden1'},
       'Magic Vulnerability Up': {bonus: 0.1, job: 'Summoner', debuff: true, affected: magicClasses('Summoner'), icon: '015000-015057'},
       'Brotherhood': {bonus: 0.05, job: 'Monk', buff: true, affected: physClasses('Monk'), icon: '012000-012529'},
-      'Enhanced Royal Road': {isRoyalRoad: true, buff: true}
+      'Enhanced Royal Road': {isRoyalRoad: true, buff: true},
+      'Radiant Shield': {type: 'special', job: 'Summoner', icon: '012000-012711'}
     },
     '4.05': {
       'The Spear': {bonus: 0.1 * critModifier},
@@ -211,7 +214,8 @@ const typesFull = {
   crit: 'Critical Hit',
   dh: 'Direct Hit',
   haste: 'Haste',
-  damage: 'Damage'
+  damage: 'Damage',
+  special: 'Special'
 }
 
 Object.keys(FFLogsResources.buffsLight).forEach(patch => {

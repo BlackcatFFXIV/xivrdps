@@ -176,6 +176,8 @@ class Views {
     data.totalRaidDPS = 0
     data.totalContribution = 0
 
+    this.specialBuffs(data)
+
     data.jobAmount = {}
     data.damageDone.forEach(entry => {
       data.jobAmount[entry.type] = data.jobAmount[entry.type] || 0
@@ -227,13 +229,39 @@ class Views {
 
     return data
   }
+
+  specialBuffs(data) {
+    const encounter = data.encounter
+    data.damageDone.forEach(entry => {
+      if (isSpecial(entry)) {
+        const buff = resources.buffs[encounter.patch][entry.name]
+        const players = data.damageDone.filter(isPlayer)
+        const otherJobs = players.filter(entry => (entry.type !== buff.job))
+        const contribution = {name: entry.name, dps: entry.personalDPSFull, icon: buff.icon ? buff.icon + '.png' : '', total: entry.total, entries: []}
+        const splitDPS = otherJobs.length ? entry.personalDPSFull / otherJobs.length : 0
+        otherJobs.forEach(jobEntry => {
+          contribution.entries.push({name: jobEntry.name, type: jobEntry.type, dpsContribution: splitDPS, dps: 0, total: 0})
+        })
+        data.contribution.push(contribution)
+      }
+    })
+    data.damageDone = data.damageDone.filter(entry => (resources.specialBuffs.indexOf(entry.name) === -1))
+  }
+}
+
+function isPlayer(entry) {
+  return (entry.type !== 'LimitBreak' && !isSpecial(entry))
+}
+
+function isSpecial(entry) {
+  return (resources.specialBuffs.indexOf(entry.name) !== -1)
 }
 
 const parentViewTransforms = {
   buffsLight: (obj, parent, parentKey) => {
     const patchDate = resources.patches[obj.origKey] ? '(' + resources.patches[obj.origKey].release.toLocaleDateString('en-us', dateOptions) + ')' : ''
     const header = `<h3>Patch ${obj.key} ${patchDate}</h3>`
-    const buffs = Object.keys(obj.obj).filter(buffName => obj.obj[buffName] && obj.obj[buffName].bonus).map(buffName => {
+    const buffs = Object.keys(obj.obj).filter(buffName => obj.obj[buffName] && (obj.obj[buffName].bonus || obj.obj[buffName].type === 'special')).map(buffName => {
       const buff = obj.obj[buffName]
       const icon = buff.icon ? `<img src="/img/buffs/${buff.icon}.png" />` : ''
       const jobIcon = (job, size) => job ? `<img src="img/class/${job}.png" alt="${job}" width="${size}" height="${size}" />` : ''
@@ -254,8 +282,8 @@ const parentViewTransforms = {
           <div class="buff-param buff-bonus">Enhanced Bonus: ${parseFloat((buff.bonus * 1.5 * 100).toFixed(1))}%${disclaimer}</div>
         `
       }
+      if (buff.bonus) content += `<div class="buff-param buff-bonus">Bonus: ${buff.bonusPercentage}${disclaimer}</div>`
       content += `
-        <div class="buff-param buff-bonus">Bonus: ${buff.bonusPercentage}${disclaimer}</div>
         <div class="buff-param">Type: ${buff.typeStr} ${buffText}</div>
       `
       if (buff.affected && buff.affected.length) {

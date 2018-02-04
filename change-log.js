@@ -1,6 +1,14 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('02-04-2018'),
+      description: '',
+      list: [
+        'Radiant Shield is now listed as a Summoner buff. Anything that\'s added like Radiant Shield will now be known as a "special buff", that will be applied after everything else.'
+      ]
+    },
+
+    {
       date: new Date('02-02-2018'),
       description: 'Definitions page added.',
       list: [
