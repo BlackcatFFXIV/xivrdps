@@ -1,6 +1,14 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('03-29-2018'),
+      description: '',
+      list: [
+        'I have decided to turn off haste buffs for the time being. Treating them as a static damage buff is not feasible, another method would have to be found.'
+      ]
+    },
+
+    {
       date: new Date('02-04-2018'),
       description: '',
       list: [
