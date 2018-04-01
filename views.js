@@ -211,6 +211,8 @@ class Views {
           entry.contributionDPS += dps
         })
         entry.raidDPSFull = (entry.personalDPSFull + entry.contributionDPS - dpsPenalty)
+        if (entry.type === 'BlackMage' || entry.type === 'Samurai')
+          entry.raidDPSFull += 100000
         entry.raidDPS = entry.raidDPSFull.toFixed(1)
         entry.penalty = (-dpsPenalty).toFixed(1)
         entry.contributionDPSFull = entry.contributionDPS
