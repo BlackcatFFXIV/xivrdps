@@ -99,7 +99,13 @@ class FFLogs {
 
     this.request('tables/buffs/' + encounter.id, options, resultBuffs => {
       if (resultBuffs && !resultBuffs.error) {
-        resultBuffs = resultBuffs.auras.filter(a => (buffsToCheck.indexOf(a.guid) != -1 || resources.buffIds[a.name]) && (a.guid !== resources.buffs[encounter.patch][a.name].excludeId))
+        resultBuffs.auras.forEach(a => {
+          // Just go off of Meditative Brotherhood, since they were split in fflogs recently.
+          if (a.name === 'Meditative Brotherhood') a.name = 'Brotherhood'
+        })
+        resultBuffs = resultBuffs.auras.filter(a => (buffsToCheck.indexOf(a.guid) != -1 || resources.buffIds[a.name]) &&
+          (resources.buffs[encounter.patch][a.name] && a.guid !== resources.buffs[encounter.patch][a.name].excludeId) &&
+          a.guid !== 1001185)
 
         const promises = []
         resultBuffs.forEach(b => {
