@@ -115,109 +115,111 @@ class FFLogs {
   }
 
   damageFromBuffs(encounter, buffs, options, cb) {
-    options = Object.assign({}, options, {
-      start: options.start || encounter.start_time,
-      end: options.end || encounter.end_time
-    })
-
-    const promises = []
-    const royalRoads = []
-
-    buffs.filter(b => b.name === 'Embolden').forEach(b => this.splitEmbolden(buffs, b))
-    buffs.forEach(buff => {
-      const bonus = resources.buffs[encounter.patch][buff.name].bonus
-      if (!resources.buffs[encounter.patch][buff.name].bonus) {
-        if (resources.buffs[encounter.patch][buff.name].isRoyalRoad) {
-          royalRoads.push(buff)
-        }
-        return
-      }
-      buff.entries = {}
-      buff.bands.forEach(band => {
-        promises.push(new Promise((resolve, reject) => {
-          this.damageDone(encounter, {start: band.startTime, end: band.endTime}, damageDone => {
-            if (!damageDone || damageDone.error) {
-              reject(damageDone)
-            } else {
-              band.targets = band.targets || []
-              const isSolo = (!band.timeDilatedAOE && band.targets.length === 1)
-              if (isSolo) encounter.soloCards++
-              resolve({buff: buff, targets: band.targets, damageDone: damageDone, start: band.startTime, end: band.endTime, timeDilatedAOE: band.timeDilatedAOE, isExtendedCard: band.isExtendedCard, isSolo: isSolo})
-            }
-          })
-        }))
-      })
-    })
-
-    function consumeRoyalRoad(value) {
-      let found = false
-      royalRoads.forEach(rr => {
-        if (found) return
-        rr.bands.forEach(band => {
-          const diff = Math.abs(band.endTime - value.start)
-          if (!found && !band.consumed && diff <= 4000) {
-            found = true
-            band.consumed = true
-            value.buff.royalRoad = rr.name
-          }
-        })
-      })
-      return found
-    }
-
-    Promise.all(promises).then(values => {
-      encounter.oldRoyalRoad = ((encounter.soloCards / encounter.cardsAmount) > 0.2) ? 'Enhanced Royal Road' : ''
-      values.forEach(value => {
-        const simpleDamage = this.damageDoneSimple(value.damageDone)
-        simpleDamage.forEach(entry => {
-          const type = resources.buffs[encounter.patch][value.buff.name].type
-          const affected = resources.buffs[encounter.patch][value.buff.name].affected
-          const debuff = resources.buffs[encounter.patch][value.buff.name].debuff
-          const isCard = resources.buffs[encounter.patch][value.buff.name].isCard
-          let targeted = (value.targets.indexOf(entry.id) !== -1)
-          if (!targeted && debuff) targeted = true
-          if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
-          if (targeted) {
-            const isSolo = value.isSolo
-            if (isCard) consumeRoyalRoad(value)
-            const bonus = resources.buffs[encounter.patch][value.buff.name].bonus
-            let soloBonus = isCard ? 0.5 : 1
-            if (isCard && isSolo) {
-              if (!encounter.supportsRoyalRoad) value.buff.royalRoad = encounter.oldRoyalRoad
-              soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 1.5 : 1
-            }
-            const total = ((entry.total * (bonus * soloBonus)) / (1 + (bonus * soloBonus)))
-            value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0}
-            value.buff.entries[entry.name].totalBefore = value.buff.entries[entry.name].totalBefore || 0
-            value.buff.entries[entry.name].totalBefore += entry.total
-            value.buff.entries[entry.name].total += total
-          }
-        })
+    this.damageEvents(encounter, {}, events => {
+      options = Object.assign({}, options, {
+        start: options.start || encounter.start_time,
+        end: options.end || encounter.end_time
       })
 
+      const promises = []
+      const royalRoads = []
+
+      buffs.filter(b => b.name === 'Embolden').forEach(b => this.splitEmbolden(buffs, b))
       buffs.forEach(buff => {
         const bonus = resources.buffs[encounter.patch][buff.name].bonus
-        if (!bonus) {
-          buff.entries = []
+        if (!resources.buffs[encounter.patch][buff.name].bonus) {
+          if (resources.buffs[encounter.patch][buff.name].isRoyalRoad) {
+            royalRoads.push(buff)
+          }
           return
         }
-        buff.dps = 0
-        buff.total = 0
-        for (let entryKey in buff.entries) {
-          const entry = buff.entries[entryKey]
-          entry.dps = entry.totalBefore / encounter.totalTime * 1000
-          entry.dpsContribution = entry.total / encounter.totalTime * 1000
-          if (entry.type !== resources.buffs[encounter.patch][buff.name].job) {
-            buff.dps += entry.dpsContribution
-            buff.total += entry.total
-          }
-        }
-        buff.entries = Object.values(buff.entries)
+        buff.entries = {}
+        buff.bands.forEach(band => {
+          promises.push(new Promise((resolve, reject) => {
+            this.damageDoneFromEvents(encounter, events, band.startTime, band.endTime, damageDone => {
+              if (!damageDone || damageDone.error) {
+                reject(damageDone)
+              } else {
+                band.targets = band.targets || []
+                const isSolo = (!band.timeDilatedAOE && band.targets.length === 1)
+                if (isSolo) encounter.soloCards++
+                resolve({buff: buff, targets: band.targets, damageDone: damageDone, start: band.startTime, end: band.endTime, timeDilatedAOE: band.timeDilatedAOE, isExtendedCard: band.isExtendedCard, isSolo: isSolo})
+              }
+            })
+          }))
+        })
       })
 
-      cb(buffs)
-    }).catch(e => {
-      console.log('Rejection: ', e)
+      function consumeRoyalRoad(value) {
+        let found = false
+        royalRoads.forEach(rr => {
+          if (found) return
+          rr.bands.forEach(band => {
+            const diff = Math.abs(band.endTime - value.start)
+            if (!found && !band.consumed && diff <= 4000) {
+              found = true
+              band.consumed = true
+              value.buff.royalRoad = rr.name
+            }
+          })
+        })
+        return found
+      }
+
+      Promise.all(promises).then(values => {
+        encounter.oldRoyalRoad = ((encounter.soloCards / encounter.cardsAmount) > 0.2) ? 'Enhanced Royal Road' : ''
+        values.forEach(value => {
+          const simpleDamage = this.damageDoneSimple(value.damageDone)
+          simpleDamage.forEach(entry => {
+            const type = resources.buffs[encounter.patch][value.buff.name].type
+            const affected = resources.buffs[encounter.patch][value.buff.name].affected
+            const debuff = resources.buffs[encounter.patch][value.buff.name].debuff
+            const isCard = resources.buffs[encounter.patch][value.buff.name].isCard
+            let targeted = (value.targets.indexOf(entry.id) !== -1)
+            if (!targeted && debuff) targeted = true
+            if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
+            if (targeted) {
+              const isSolo = value.isSolo
+              if (isCard) consumeRoyalRoad(value)
+              const bonus = resources.buffs[encounter.patch][value.buff.name].bonus
+              let soloBonus = isCard ? 0.5 : 1
+              if (isCard && isSolo) {
+                if (!encounter.supportsRoyalRoad) value.buff.royalRoad = encounter.oldRoyalRoad
+                soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 1.5 : 1
+              }
+              const total = ((entry.total * (bonus * soloBonus)) / (1 + (bonus * soloBonus)))
+              value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0}
+              value.buff.entries[entry.name].totalBefore = value.buff.entries[entry.name].totalBefore || 0
+              value.buff.entries[entry.name].totalBefore += entry.total
+              value.buff.entries[entry.name].total += total
+            }
+          })
+        })
+
+        buffs.forEach(buff => {
+          const bonus = resources.buffs[encounter.patch][buff.name].bonus
+          if (!bonus) {
+            buff.entries = []
+            return
+          }
+          buff.dps = 0
+          buff.total = 0
+          for (let entryKey in buff.entries) {
+            const entry = buff.entries[entryKey]
+            entry.dps = entry.totalBefore / encounter.totalTime * 1000
+            entry.dpsContribution = entry.total / encounter.totalTime * 1000
+            if (entry.type !== resources.buffs[encounter.patch][buff.name].job) {
+              buff.dps += entry.dpsContribution
+              buff.total += entry.total
+            }
+          }
+          buff.entries = Object.values(buff.entries)
+        })
+
+        cb(buffs)
+      }).catch(e => {
+        console.log('Rejection: ', e)
+      })
     })
   }
 
@@ -245,6 +247,60 @@ class FFLogs {
         personalDPSFull: entry.personalDPS
       }
     })
+  }
+
+  damageEvents(encounter, options, cb) {
+    let events = []
+    options = Object.assign({}, options, {
+      start: options.start || encounter.start_time,
+      end: options.end || encounter.end_time,
+      translate: true,
+      filter: 'source.type = "player" AND inCategory("damage") = "true"'
+    })
+
+    const onResult = result => {
+      if (!result || !result.events || result.error) {
+        if (result && !result.events && !result.error) result.error = 'No entries found.'
+        cb(result)
+      } else {
+        events = events.concat(result.events)
+        if (result.nextPageTimestamp) {
+          options.start = result.nextPageTimestamp
+          this.damageDoneRequestCount++
+          this.request('events/' + encounter.id, options, onResult)
+        } else {
+          cb(events)
+        }
+      }
+    }
+
+    this.damageDoneRequestCount++
+    this.request('events/' + encounter.id, options, onResult)
+  }
+
+  damageDoneFromEvents(encounter, events, start, end, cb) {
+    const entries = []
+    events = events.filter(e => e.timestamp >= start && e.timestamp <= end)
+    events.forEach(e => {
+      const player = this.getPlayer(encounter, e.sourceID)
+      let entry = entries.find(entry => entry.id === player.id)
+      if (!entry) {
+        entry = {
+          name: player.name,
+          id: player.id,
+          type: player.type,
+          guid: player.guid,
+          total: e.amount
+        }
+        entries.push(entry)
+      } else {
+        entry.total += e.amount
+      }
+    })
+    entries.forEach(entry => {
+      entry.personalDPS = entry.total / encounter.totalTime * 1000
+    })
+    cb({entries: entries})
   }
 
   buffEvents(encounter, options, cb) {

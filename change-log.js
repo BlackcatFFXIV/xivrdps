@@ -1,6 +1,16 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('08-29-2018'),
+      description: 'Overhaul of FFLogs requests',
+      list: [
+        'Ultima and Tsukuyomi added to the encounter list',
+        'Encounter listing now shows certain text again',
+        'Requests sent to FFLogs completely changed. Should be generating at least five times less requests per non-cached page. A few things about player damage calculation from the events list might still have to be changed to keep consistency with the previous approach.'
+      ]
+    },
+
+    {
       date: new Date('03-29-2018'),
       description: '',
       list: [

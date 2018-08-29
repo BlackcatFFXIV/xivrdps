@@ -1,7 +1,7 @@
 const resources = require('./fflogs-resources')
 const changeLog = require('./change-log')
 const Result = require('./models/result')
-const debug = true
+const debug = false
 const dateOptions = {year: "numeric", month: "long", day: "numeric"}
 
 class Views {
@@ -36,11 +36,6 @@ class Views {
                 if (encounter.id === id) encounterName = encounter.name
               })
             })
-            console.log({
-              encounterId: id,
-              encounterName: encounterName,
-              listings: results.rankings
-            })
             res.render('listing', {
               encounterId: id,
               encounterName: encounterName,
@@ -74,36 +69,6 @@ class Views {
           })
         } else {
           res.redirect('/')
-        }
-      },
-
-      'testing/:id/:fightId': (req, res) => {
-        const encounterId = req.params.id
-        let fightId = req.params.fightId || -1
-        fightId = fightId !== undefined ? parseFloat(fightId) : -1
-        try {
-          fflogs.encounter(encounterId, fightId, {}, encounter => {
-            if (encounter) {
-              if (encounter.error) {
-                res.render('errors', encounter)
-                return
-              }
-              fflogs.buffTimeline(encounter, {}, timeline => {
-                if (!timeline) {
-                  res.render('errors', {error: 'An unknown error has occured.'})
-                  return
-                } else if (timeline.error) {
-                  res.render('errors', timeline)
-                  return
-                }
-                res.end(JSON.stringify(timeline, null, '\t'))
-              })
-            } else {
-              res.render('errors', {error: 'Unknown or Malformatted Encounter/Fight.'})
-            }
-          })
-        } catch(e) {
-          res.render('errors', {error: 'An unknown error has occured.'})
         }
       },
 
