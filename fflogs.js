@@ -10,6 +10,8 @@ const dateOptions = {year: "numeric", month: "short", day: "numeric", hour: "2-d
 class FFLogs {
   constructor() {
     this.defaultOptions = { 'api_key': apiKey, translate: true }
+    this.requestCount = 0
+    this.damageDoneRequestCount = 0
   }
 
   encounter(encounterId, fightId, options, cb) {
@@ -39,6 +41,9 @@ class FFLogs {
           encounter.cardsAmount = 0
           encounter.soloCards = 0
           encounter.oldRoyalRoad = 'Enhanced Royal Road'
+          encounter.friendlies = result.friendlies
+          encounter.friendlyPets = result.friendlyPets
+          encounter.enemies = result.enemies
           cb(encounter)
         }
       }
@@ -68,6 +73,7 @@ class FFLogs {
     })
 
     const requestResult = () => {
+      this.damageDoneRequestCount++
       this.request('tables/damage-done/' + encounter.id, options, result => {
         if (!result || !result.entries || result.error) {
           if (result && !result.entries && !result.error) result.error = 'No entries found.'
@@ -88,115 +94,6 @@ class FFLogs {
       }
       cb(result)
     }
-  }
-
-  buffTimeline(encounter, options, cb) {
-    options = Object.assign({}, options, {
-      start: options.start || encounter.start_time,
-      end: options.end || encounter.end_time
-    })
-    const buffsToCheck = Object.values(resources.buffIds)
-
-    this.request('tables/buffs/' + encounter.id, options, resultBuffs => {
-      if (resultBuffs && !resultBuffs.error) {
-        resultBuffs.auras.forEach(a => {
-          // Just go off of Meditative Brotherhood, since they were split in fflogs recently.
-          if (a.name === 'Meditative Brotherhood') a.name = 'Brotherhood'
-        })
-        resultBuffs = resultBuffs.auras.filter(a => (buffsToCheck.indexOf(a.guid) != -1 || resources.buffIds[a.name]) &&
-          (resources.buffs[encounter.patch][a.name] && a.guid !== resources.buffs[encounter.patch][a.name].excludeId) &&
-          a.guid !== 1001185)
-
-        const promises = []
-        resultBuffs.forEach(b => {
-          promises.push(new Promise((resolve, reject) => {
-            const newOptions = Object.assign({}, options, { abilityid: b.guid })
-            this.request('tables/buffs/' + encounter.id, newOptions, buffDetails => {
-              if (buffDetails && !buffDetails.error) {
-                //console.log(b.name, buffDetails)
-                resolve({ buff: buffDetails, abilityId: newOptions.abilityid })
-              } else {
-                reject()
-              }
-            })
-          }))
-        })
-
-        Promise.all(promises).then(details => {
-          options = Object.assign({}, options, { hostility: 1 })
-
-          this.request('tables/debuffs/' + encounter.id, options, resultDebuffs => {
-            if (resultDebuffs && !resultDebuffs.error) {
-              resultDebuffs = resultDebuffs.auras.filter(a => buffsToCheck.indexOf(a.guid) != -1)
-
-              resultDebuffs.forEach(debuff => {
-                // These are both 'Vulnerability Up', change that.
-                if (debuff.guid === resources.buffIds['Trick Attack']) {
-                  debuff.originalName = debuff.name
-                  debuff.name = 'Trick Attack'
-                }
-                if (debuff.guid === resources.buffIds['Hypercharge']) {
-                  debuff.originalName = debuff.name
-                  debuff.name = 'Hypercharge'
-                }
-              })
-              resultDebuffs = resultDebuffs.filter(b => resources.buffs[encounter.patch][b.name].debuff)
-            } else if (resultDebuffs && resultDebuffs.error) {
-              cb(resultDebuffs.error)
-              return
-            }
-            resultBuffs = resultBuffs.filter(b => resources.buffs[encounter.patch][b.name].buff)
-            resultBuffs.forEach(result => {
-              const resultDetails = details.find(b => b.abilityId === result.guid)
-              if (resultDetails) {
-                const bandsMap = {}
-                resultDetails.buff.auras.forEach(buffDetail => {
-                  if (buffDetail.type !== 'Pet') {
-                    buffDetail.bands.forEach(band => {
-                      const isCard = resources.buffs[encounter.patch][result.name].isCard
-                      let key = getKey(band.startTime, band.endTime)
-                      if (isCard) encounter.cardsAmount++
-                      if (isCard && band.endTime - band.startTime > 60000) band.isExtendedCard = true
-                      const checkBands = (start, end) => {
-                        for (var bKey in bandsMap) {
-                          const b = bandsMap[bKey]
-                          if (start > b.startTime - 4000 && start < b.startTime + 4000) {
-                            if (end > b.endTime - 4000 && end < b.endTime + 4000) return getKey(b.startTime, b.endTime)
-                            if ((isCard !== -1) && end > b.endTime - 18000 && end < b.endTime + 18000) {
-                              band.timeDilatedAOE = b
-                              return false
-                            }
-                          }
-                        }
-                        return false
-                      }
-                      if (!bandsMap[key]) {
-                        const closeKey = checkBands(band.startTime, band.endTime)
-                        if (!closeKey) {
-                          band.targets = [buffDetail.name]
-                          bandsMap[key] = band
-                        } else {
-                          bandsMap[closeKey].targets.push(buffDetail.name)
-                        }
-                      } else {
-                        bandsMap[key].targets.push(buffDetail.name)
-                      }
-                    })
-                  }
-                })
-                result.bands = Object.values(bandsMap)
-              }
-            })
-            const results = resultBuffs.concat(resultDebuffs)
-            cb(results)
-          })
-        })
-      } else if (resultBuffs && resultBuffs.error) {
-        cb(resultBuffs)
-      } else {
-        cb(null)
-      }
-    })
   }
 
   splitEmbolden(buffs, buff) {
@@ -277,7 +174,7 @@ class FFLogs {
           const affected = resources.buffs[encounter.patch][value.buff.name].affected
           const debuff = resources.buffs[encounter.patch][value.buff.name].debuff
           const isCard = resources.buffs[encounter.patch][value.buff.name].isCard
-          let targeted = (value.targets.indexOf(entry.name) !== -1)
+          let targeted = (value.targets.indexOf(entry.id) !== -1)
           if (!targeted && debuff) targeted = true
           if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
           if (targeted) {
@@ -341,11 +238,135 @@ class FFLogs {
     return damageDone.entries.map(entry => {
       return {
         name: entry.name,
+        id: entry.id,
         type: entry.type,
         total: entry.total,
         personalDPS: entry.personalDPS.toFixed(1),
         personalDPSFull: entry.personalDPS
       }
+    })
+  }
+
+  buffEvents(encounter, options, cb) {
+    let events = []
+    options = Object.assign({}, options, {
+      start: options.start || encounter.start_time,
+      end: options.end || encounter.end_time,
+      translate: true,
+      filter: 'type in ("applydebuff", "removedebuff",' +
+        '"applybuff", "removebuff") and ability.id in (' +
+         Object.values(resources.buffIds).join(', ') + ')'
+    })
+
+    const onResult = result => {
+      if (!result || !result.events || result.error) {
+        if (result && !result.events && !result.error) result.error = 'No entries found.'
+        cb(result)
+      } else {
+        events = events.concat(result.events)
+        if (result.nextPageTimestamp) {
+          options.start = result.nextPageTimestamp
+          this.request('events/' + encounter.id, options, onResult)
+        } else {
+          cb(events)
+        }
+      }
+    }
+
+    this.request('events/' + encounter.id, options, onResult)
+  }
+
+  buffNameTransform(buff) {
+    if (buff.guid === resources.buffIds['Trick Attack']) {
+      buff.originalName = buff.name
+      buff.name = 'Trick Attack'
+    }
+    if (buff.guid === resources.buffIds['Hypercharge']) {
+      buff.originalName = buff.name
+      buff.name = 'Hypercharge'
+    }
+    if (buff.name === 'Meditative Brotherhood') buff.name = 'Brotherhood'
+  }
+
+  getPlayer(encounter, id) {
+    return encounter.friendlies.find(f => f.id === id)
+  }
+
+  buffTimeline(encounter, options, cb) {
+    const buffMap = {}
+    this.buffEvents(encounter, options, buffEvents => {
+      buffEvents.forEach(buffEvent => {
+        let buff = {
+          name: buffEvent.ability.name,
+          guid: buffEvent.ability.guid,
+          abilityIcon: buffEvent.ability.abilityIcon
+        }
+        let range = {
+          source: buffEvent.sourceID,
+          target: buffEvent.targetInstance || buffEvent.targetID
+        }
+        if (!encounter.friendlies.find(f => f.id === range.target)) return // Ignore non-players/pets
+        this.buffNameTransform(buff)
+        buffMap[buff.name] = buff = (buffMap[buff.name] || buff)
+        buff.bands = buff.bands || []
+        if (buffEvent.type === 'applybuff' || buffEvent.type === 'applydebuff') {
+          let buffsToTarget = buff.bands
+            .filter(r => (r.target === range.target) && !r.endTime)
+          let oldRange = buffsToTarget[buffsToTarget.length - 1]
+          if (oldRange) oldRange.endTime = buffEvent.timestamp // overridden buff
+          range.startTime = buffEvent.timestamp
+          buff.bands.push(range)
+        } else if (buffEvent.type === 'removebuff' || buffEvent.type === 'removedebuff') {
+          let buffsToTarget = buff.bands
+            .filter(r => (r.target === range.target) && !r.endTime)
+          range = buffsToTarget[buffsToTarget.length - 1]
+          if (range) range.endTime = buffEvent.timestamp
+        }
+      })
+      this.consolidateTargetsOfBuffs(encounter, buffMap)
+      cb(Object.values(buffMap))
+    })
+  }
+
+  consolidateTargetsOfBuffs(encounter, buffMap) {
+    Object.values(buffMap).forEach(buff => {
+      const bandsMap = {}
+      const isCard = resources.buffs[encounter.patch][buff.name].isCard
+      buff.bands.forEach(band => {
+        let key = getKey(band.startTime, band.endTime)
+        if (isCard) encounter.cardsAmount++
+        if (isCard && band.endTime - band.startTime > 60000) band.isExtendedCard = true
+
+        const checkBands = (start, end) => {
+          for (var bKey in bandsMap) {
+            const b = bandsMap[bKey]
+            if (start > b.startTime - 4000 && start < b.startTime + 4000) {
+              if (end > b.endTime - 4000 && end < b.endTime + 4000) return getKey(b.startTime, b.endTime)
+              if ((isCard !== -1) && end > b.endTime - 18000 && end < b.endTime + 18000) {
+                band.timeDilatedAOE = b
+                return false
+              }
+            }
+          }
+          return false
+        }
+
+        if (!bandsMap[key]) {
+          const closeKey = checkBands(band.startTime, band.endTime)
+          if (!closeKey) {
+            band.targets = [band.target]
+            bandsMap[key] = band
+          } else {
+            bandsMap[closeKey].targets.push(band.target)
+            delete bandsMap[closeKey].isExtendedCard
+          }
+        } else {
+          bandsMap[key].targets.push(band.target)
+          delete bandsMap[key].isExtendedCard
+        }
+        delete band.target
+      })
+      buff.bands = Object.values(bandsMap)
     })
   }
 
@@ -355,7 +376,7 @@ class FFLogs {
     const query = querystring.stringify(newOptions)
     const fullUrl = url + basePath + path + '?' + query
     //console.log('FFLogs request: ',  fullUrl)
-
+    this.requestCount++
     request({url: fullUrl, json: true}, (err, res, body) => {
       if (err) {
         console.log(err)

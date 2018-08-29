@@ -25,7 +25,7 @@ const FFLogsResources = {
     'Foe Requiem': 1000140,
     //'Slashing Resistance Down': 1000819,
     //'Fey Wind': 1000799,
-    'Left Eye': 1001184,
+    'Left Eye': 1001454,
     'The Spear': 1000832,
     //'The Arrow': 1000831,
     'The Balance': 1000829,

@@ -1,7 +1,7 @@
 const resources = require('./fflogs-resources')
 const changeLog = require('./change-log')
 const Result = require('./models/result')
-const debug = false
+const debug = true
 const dateOptions = {year: "numeric", month: "long", day: "numeric"}
 
 class Views {
@@ -35,6 +35,11 @@ class Views {
               category.encounters.forEach(encounter => {
                 if (encounter.id === id) encounterName = encounter.name
               })
+            })
+            console.log({
+              encounterId: id,
+              encounterName: encounterName,
+              listings: results.rankings
             })
             res.render('listing', {
               encounterId: id,
@@ -83,17 +88,15 @@ class Views {
                 res.render('errors', encounter)
                 return
               }
-              const filter = '(IN RANGE FROM type = "applydebuff" AND ability.id = 1000638 TO type = "removedebuff" AND ability.id = 1000638 END)'
-              console.log(filter)
-              fflogs.damageDone(encounter, {filter}, damageDone => {
-                if (!damageDone) {
+              fflogs.buffTimeline(encounter, {}, timeline => {
+                if (!timeline) {
                   res.render('errors', {error: 'An unknown error has occured.'})
                   return
-                } else if (damageDone.error) {
-                  res.render('errors', damageDone)
+                } else if (timeline.error) {
+                  res.render('errors', timeline)
                   return
                 }
-                res.end(JSON.stringify(damageDone, null, '\t'))
+                res.end(JSON.stringify(timeline, null, '\t'))
               })
             } else {
               res.render('errors', {error: 'Unknown or Malformatted Encounter/Fight.'})
@@ -135,6 +138,8 @@ class Views {
 
         const getEncounterFromFFLogs = () => {
           try {
+            fflogs.requestCount = 0
+            fflogs.damageDoneRequestCount = 0
             fflogs.encounter(encounterId, fightId, {}, encounter => {
               if (encounter) {
                 if (encounter.error) {
@@ -176,6 +181,9 @@ class Views {
                       if (!debug) {
                         const encounterResultModel = new Result(data)
                         encounterResultModel.save()
+                      } else {
+                        console.log('Requests:', fflogs.requestCount)
+                        console.log('Damage Requests:', fflogs.damageDoneRequestCount)
                       }
                     })
                   })
