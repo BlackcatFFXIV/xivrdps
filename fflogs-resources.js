@@ -15,6 +15,7 @@ function exclusionFilter(arr, excluded) {
 const physClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excluded)
 const magicClasses = excluded => exclusionFilter(['Astrologian', 'Scholar', 'WhiteMage', 'BlackMage', 'RedMage', 'Summoner'], excluded)
 const piercingClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon'], excluded)
+const slashingClasses = ['Ninja', 'Samurai', 'Warrior', 'Paladin', 'DarkKnight']
 
 const FFLogsResources = {
   buffIds: {
@@ -23,7 +24,7 @@ const FFLogsResources = {
     'Piercing Resistance Down': 1000820,
     'Chain Stratagem': 1001221,
     'Foe Requiem': 1000140,
-    //'Slashing Resistance Down': 1000819,
+    'Slashing Resistance Down': 1000819,
     //'Fey Wind': 1000799,
     'Left Eye': 1001454,
     'The Spear': 1000832,
@@ -70,6 +71,7 @@ const FFLogsResources = {
       'Battle Litany': {bonus: 0.15 * critModifier, job: 'Dragoon', type: 'crit', buff: true, icon: '012000-012578'},
       'Left Eye': {bonus: 0.05, job: 'Dragoon', buff: true, icon: '012000-012582'},
       'Piercing Resistance Down': {bonus: 0.05, job: 'Dragoon', debuff: true, affected: piercingClasses('Dragoon'), icon: '015000-015065'},
+      'Slashing Resistance Down': {bonus: 0.1, debuff: true, affected: slashingClasses, icon: '015000-015786'},
       'Physical Vulnerability Up': {bonus: 0.02, job: 'Summoner', debuff: true, affected: physClasses('Summoner'), icon: '015000-015053'},
       'Embolden': {bonus: 0, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239},
       'Embolden[5]': {bonus: 0.1, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden5'},

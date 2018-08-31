@@ -4,10 +4,12 @@ const ChangeLog = {
       date: new Date('08-31-2018'),
       description: '',
       list: [
+        'Added Slashing Resistance Down.',
+        'Uses the actual source of buffs/debuffs. (Radiant Shield is the only exception, as I cannot get its source at this time)',
         'Pet damage will now be taken into account, but only debuffs will be applied to them, not buffs.'
       ]
     },
-    
+
     {
       date: new Date('08-29-2018'),
       description: 'Overhaul of FFLogs requests',
@@ -114,10 +116,8 @@ const ChangeLog = {
   ],
 
   issues: [
-    'Slashing Resistance Down is not being tracked yet.',
-    'All speed buffs and crit buffs are currently tracked as static damage buffs, find a better way to do this.',
-    'No clue what to do in the case of double jobs, right now it will definitely produce incorrect results.',
-    'Find a way to check the type of Royal Road when a card is single target. There\'s also no way to tell when a card has been overwritten right now.'
+    'Haste buffs are ignored currently.',
+    'All crit buffs are currently tracked as static damage buffs, find a better way to do this.'
   ]
 }
 

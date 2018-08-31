@@ -1,7 +1,7 @@
 const resources = require('./fflogs-resources')
 const changeLog = require('./change-log')
 const Result = require('./models/result')
-const debug = false
+const debug = true
 const dateOptions = {year: "numeric", month: "long", day: "numeric"}
 
 class Views {
@@ -190,17 +190,21 @@ class Views {
     })
 
     data.contribution.forEach(buff => {
-      buff.entries.forEach(entry => {
-        if (entry.type === 'Pet') {
-          const ownerEntry = buff.entries.find(e => e.id === entry.petOwnerId)
-          if (ownerEntry) {
-            ownerEntry.total += entry.total
-            ownerEntry.totalBefore += entry.totalBefore
-            ownerEntry.dps += entry.dps
-            ownerEntry.dpsContribution += entry.dpsContribution
+      for (let entryKey in buff.entries) {
+        const source = buff.entries[entryKey]
+        source.entries.forEach(entry => {
+          if (entry.type === 'Pet') {
+            const ownerEntry = source.entries.find(e => e.id === entry.petOwnerId)
+            if (ownerEntry) {
+              ownerEntry.total += entry.total
+              ownerEntry.totalBefore += entry.totalBefore
+              ownerEntry.dps += entry.dps
+              ownerEntry.dpsContribution += entry.dpsContribution
+            }
           }
-        }
-      })
+        })
+        buff.entries[entryKey].entries = buff.entries[entryKey].entries.filter(e => e.type !== 'Pet')
+      }
     })
 
     data.damageDone.forEach(entry => {
@@ -211,21 +215,24 @@ class Views {
         entry.contributionDPS = 0
         entry.contributions = []
         let dpsPenalty = 0
-        const buffs = data.contribution.filter(b => resources.buffs[encounter.patch][b.name].job === entry.type)
-        const otherBuffs = data.contribution.filter(b => resources.buffs[encounter.patch][b.name].job !== entry.type)
+        const buffs = data.contribution.filter(b => !!b.entries[entry.id])
         const jobAmount = data.jobAmount[entry.type] || 1
         entry.fromOtherBuffs = []
-        otherBuffs.forEach(buff => {
-          const buffEntry = buff.entries.find(e => e.name === entry.name)
-          if (buffEntry) {
-            const dpsContribution = (buffEntry.dpsContribution || 0)
-            dpsPenalty += dpsContribution
-            entry.fromOtherBuffs.push({buff: buff, dps: dpsContribution.toFixed(1) })
-          }
+        data.contribution.forEach(buff => {
+          Object.values(buff.entries).forEach(source => {
+            if (source.source === entry.id) return
+            const buffEntry = source.entries.find(e => e.id === entry.id)
+            if (buffEntry) {
+              const dpsContribution = (buffEntry.dpsContribution || 0)
+              dpsPenalty += dpsContribution
+              entry.fromOtherBuffs.push({buff: buff, dps: dpsContribution.toFixed(1) })
+            }
+          })
         })
         buffs.forEach(buff => {
+          const source = buff.entries[entry.id]
           const disclaimer = resources.disclaimers[resources.buffs[encounter.patch][buff.name].type] || ''
-          let dps = buff.dps / jobAmount
+          let dps = source.dps
           entry.contributions.push({ name: buff.name, icon: buff.icon, dps: dps.toFixed(1) + disclaimer })
           entry.contributionDPS += dps
         })
@@ -256,10 +263,13 @@ class Views {
         const buff = resources.buffs[encounter.patch][entry.name]
         const players = data.damageDone.filter(isPlayer)
         const otherJobs = players.filter(entry => (entry.type !== buff.job))
-        const contribution = {name: entry.name, dps: entry.personalDPSFull, icon: buff.icon ? buff.icon + '.png' : '', total: entry.total, entries: []}
+        const firstOfJob = players.find(entry => (entry.type === buff.job)) // Don't know which player this came from, assume it's the first of the job, won't work for multiples
+        const contribution = {name: entry.name, icon: buff.icon ? buff.icon + '.png' : '', entries: {}}
         const splitDPS = otherJobs.length ? entry.personalDPSFull / otherJobs.length : 0
+        contribution.entries[firstOfJob.id] = {source: firstOfJob.id, entries: [], dps: entry.personalDPSFull, total: entry.total}
+        const source = contribution.entries[firstOfJob.id]
         otherJobs.forEach(jobEntry => {
-          contribution.entries.push({name: jobEntry.name, type: jobEntry.type, dpsContribution: splitDPS, dps: 0, total: 0})
+          source.entries.push({name: jobEntry.name, type: jobEntry.type, dpsContribution: splitDPS, dps: 0, total: 0})
         })
         data.contribution.push(contribution)
       }

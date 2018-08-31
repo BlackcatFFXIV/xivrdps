@@ -104,7 +104,7 @@ class FFLogs {
       for (let i=5; i>0; i--) {
         const name = 'Embolden[' + i + ']'
         newBuffs[name] = newBuffs[name] || Object.assign({}, buff, {name: name, bands: [], abilityIcon: 'embolden' + i + '.png'})
-        newBuffs[name].bands.push({startTime: start, endTime: end, targets: band.targets})
+        newBuffs[name].bands.push({startTime: start, endTime: end, source: band.source, targets: band.targets})
         start = end + 1
         end = start + 4000
         if (end > band.endTime) end = band.endTime
@@ -143,7 +143,8 @@ class FFLogs {
                 band.targets = band.targets || []
                 const isSolo = (!band.timeDilatedAOE && band.targets.length === 1)
                 if (isSolo) encounter.soloCards++
-                resolve({buff: buff, targets: band.targets, damageDone: damageDone, start: band.startTime, end: band.endTime, timeDilatedAOE: band.timeDilatedAOE, isExtendedCard: band.isExtendedCard, isSolo: isSolo})
+                resolve({buff: buff, source: band.source, targets: band.targets, damageDone: damageDone, start: band.startTime,
+                  end: band.endTime, timeDilatedAOE: band.timeDilatedAOE, isExtendedCard: band.isExtendedCard, isSolo: isSolo})
               }
             })
           }))
@@ -188,13 +189,15 @@ class FFLogs {
                 soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 1.5 : 1
               }
               const total = ((entry.total * (bonus * soloBonus)) / (1 + (bonus * soloBonus)))
-              value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0, id: entry.id}
-              value.buff.entries[entry.name].totalBefore = value.buff.entries[entry.name].totalBefore || 0
-              value.buff.entries[entry.name].totalBefore += entry.total
-              value.buff.entries[entry.name].total += total
+              value.buff.entries[value.source] = value.buff.entries[value.source] || {source: value.source, entries: {}}
+              const source = value.buff.entries[value.source]
+              source.entries[entry.name] = source.entries[entry.name] || {name: entry.name, type: entry.type, total: 0, id: entry.id}
+              source.entries[entry.name].totalBefore = source.entries[entry.name].totalBefore || 0
+              source.entries[entry.name].totalBefore += entry.total
+              source.entries[entry.name].total += total
               if (entry.type === 'Pet') {
-                value.buff.entries[entry.name].petOwnerId = entry.petOwnerId
-                value.buff.entries[entry.name].petOwnerName = entry.petOwnerName
+                source.entries[entry.name].petOwnerId = entry.petOwnerId
+                source.entries[entry.name].petOwnerName = entry.petOwnerName
               }
             }
           })
@@ -203,21 +206,24 @@ class FFLogs {
         buffs.forEach(buff => {
           const bonus = resources.buffs[encounter.patch][buff.name].bonus
           if (!bonus) {
-            buff.entries = []
+            buff.entries = {}
             return
           }
-          buff.dps = 0
-          buff.total = 0
-          for (let entryKey in buff.entries) {
-            const entry = buff.entries[entryKey]
-            entry.dps = entry.totalBefore / encounter.totalTime * 1000
-            entry.dpsContribution = entry.total / encounter.totalTime * 1000
-            if (entry.type !== resources.buffs[encounter.patch][buff.name].job) {
-              buff.dps += entry.dpsContribution
-              buff.total += entry.total
+          for (let sourceId in buff.entries) {
+            const source = buff.entries[sourceId]
+            source.dps = 0
+            source.total = 0
+            for (let entryKey in source.entries) {
+              const entry = source.entries[entryKey]
+              entry.dps = entry.totalBefore / encounter.totalTime * 1000
+              entry.dpsContribution = entry.total / encounter.totalTime * 1000
+              if (entry.id.toString() !== sourceId.toString()) {
+                source.dps += entry.dpsContribution
+                source.total += entry.total
+              }
             }
+            buff.entries[sourceId].entries = Object.values(buff.entries[sourceId].entries)
           }
-          buff.entries = Object.values(buff.entries)
         })
 
         cb(buffs)
@@ -232,9 +238,7 @@ class FFLogs {
       return {
         name: buff.name,
         icon: buff.abilityIcon,
-        dps: buff.dps,
-        total: buff.total,
-        entries: buff.entries
+        entries: buff.entries || {}
       }
     })
   }
@@ -375,6 +379,13 @@ class FFLogs {
         let range = {
           source: buffEvent.sourceID,
           target: buffEvent.targetInstance || buffEvent.targetID
+        }
+        const sourcePet = encounter.friendlyPets.find(f => f.id === range.source)
+        if (sourcePet) range.source = sourcePet.petOwner
+        if (buff.name === 'Physical Vulnerability Up') {
+          const buffMeta = resources.buffs[encounter.patch][buff.name]
+          const firstOfJob = encounter.friendlies.find(entry => (entry.type === buffMeta.job)) // Don't know which player this came from, assume it's the first of the job, won't work for multiples
+          range.source = firstOfJob.id
         }
         // Ignore non-players/pets for buffs, but allow pets to get debuffs
         if (!encounter.friendlies.find(f => f.id === range.target)) {
