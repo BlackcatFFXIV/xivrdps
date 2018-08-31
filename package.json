@@ -14,7 +14,7 @@
     "express": "^4.14.0",
     "https": "^1.0.0",
     "jquery": "^3.1.1",
-    "mongoose": "^4.13.5",
+    "mongoose": "^5.2.12",
     "mustache": "^2.3.0",
     "mustache-express": "^1.2.2",
     "popper.js": "^1.12.9",

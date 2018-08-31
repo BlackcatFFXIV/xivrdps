@@ -8,7 +8,7 @@ const port = process.env.PORT || 8080
 const Views = require('./views')
 const FFLogs = require('./fflogs')
 mongoose.Promise = global.Promise;
-mongoose.connect(dbURI, { useMongoClient: true })
+mongoose.connect(dbURI, {useNewUrlParser: true})
 
 app.engine('html', mustacheExpress())
 app.set('view engine', 'html')

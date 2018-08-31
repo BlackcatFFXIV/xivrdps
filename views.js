@@ -142,7 +142,6 @@ class Views {
                         damageDone: this.fflogs.damageDoneSimple(damageDone),
                         contribution: this.fflogs.damageContributionSimple(contribution)
                       }
-                      res.render('encounters', this.playersView(data))
                       if (!debug) {
                         const encounterResultModel = new Result(data)
                         encounterResultModel.save()
@@ -150,6 +149,7 @@ class Views {
                         console.log('Requests:', fflogs.requestCount)
                         console.log('Damage Requests:', fflogs.damageDoneRequestCount)
                       }
+                      res.render('encounters', this.playersView(data))
                     })
                   })
                 })
@@ -190,8 +190,7 @@ class Views {
     })
 
     data.contribution.forEach(buff => {
-      for (let entryKey in buff.entries) {
-        const source = buff.entries[entryKey]
+      buff.entries.forEach(source => {
         source.entries.forEach(entry => {
           if (entry.type === 'Pet') {
             const ownerEntry = source.entries.find(e => e.id === entry.petOwnerId)
@@ -203,8 +202,8 @@ class Views {
             }
           }
         })
-        buff.entries[entryKey].entries = buff.entries[entryKey].entries.filter(e => e.type !== 'Pet')
-      }
+        source.entries = source.entries.filter(e => e.type !== 'Pet')
+      })
     })
 
     data.damageDone.forEach(entry => {
@@ -215,11 +214,10 @@ class Views {
         entry.contributionDPS = 0
         entry.contributions = []
         let dpsPenalty = 0
-        const buffs = data.contribution.filter(b => !!b.entries[entry.id])
         const jobAmount = data.jobAmount[entry.type] || 1
         entry.fromOtherBuffs = []
         data.contribution.forEach(buff => {
-          Object.values(buff.entries).forEach(source => {
+          buff.entries.forEach(source => {
             if (source.source === entry.id) return
             const buffEntry = source.entries.find(e => e.id === entry.id)
             if (buffEntry) {
@@ -229,8 +227,9 @@ class Views {
             }
           })
         })
-        buffs.forEach(buff => {
-          const source = buff.entries[entry.id]
+        data.contribution.forEach(buff => {
+          const source = buff.entries.find(e => e.source === entry.id)
+          if (!source) return
           const disclaimer = resources.disclaimers[resources.buffs[encounter.patch][buff.name].type] || ''
           let dps = source.dps
           entry.contributions.push({ name: buff.name, icon: buff.icon, dps: dps.toFixed(1) + disclaimer })
@@ -264,10 +263,10 @@ class Views {
         const players = data.damageDone.filter(isPlayer)
         const otherJobs = players.filter(entry => (entry.type !== buff.job))
         const firstOfJob = players.find(entry => (entry.type === buff.job)) // Don't know which player this came from, assume it's the first of the job, won't work for multiples
-        const contribution = {name: entry.name, icon: buff.icon ? buff.icon + '.png' : '', entries: {}}
+        const contribution = {name: entry.name, icon: buff.icon ? buff.icon + '.png' : '', entries: []}
         const splitDPS = otherJobs.length ? entry.personalDPSFull / otherJobs.length : 0
-        contribution.entries[firstOfJob.id] = {source: firstOfJob.id, entries: [], dps: entry.personalDPSFull, total: entry.total}
-        const source = contribution.entries[firstOfJob.id]
+        const source = {source: firstOfJob.id, entries: [], dps: entry.personalDPSFull, total: entry.total}
+        contribution.entries.push(source)
         otherJobs.forEach(jobEntry => {
           source.entries.push({name: jobEntry.name, type: jobEntry.type, dpsContribution: splitDPS, dps: 0, total: 0})
         })

@@ -206,7 +206,7 @@ class FFLogs {
         buffs.forEach(buff => {
           const bonus = resources.buffs[encounter.patch][buff.name].bonus
           if (!bonus) {
-            buff.entries = {}
+            buff.entries = []
             return
           }
           for (let sourceId in buff.entries) {
@@ -224,6 +224,7 @@ class FFLogs {
             }
             buff.entries[sourceId].entries = Object.values(buff.entries[sourceId].entries)
           }
+          buff.entries = Object.values(buff.entries)
         })
 
         cb(buffs)
