@@ -1,6 +1,14 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('08-31-2018'),
+      description: '',
+      list: [
+        'Pet damage will now be taken into account, but only debuffs will be applied to them, not buffs.'
+      ]
+    },
+    
+    {
       date: new Date('08-29-2018'),
       description: 'Overhaul of FFLogs requests',
       list: [

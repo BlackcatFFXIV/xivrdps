@@ -188,10 +188,14 @@ class FFLogs {
                 soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 1.5 : 1
               }
               const total = ((entry.total * (bonus * soloBonus)) / (1 + (bonus * soloBonus)))
-              value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0}
+              value.buff.entries[entry.name] = value.buff.entries[entry.name] || {name: entry.name, type: entry.type, total: 0, id: entry.id}
               value.buff.entries[entry.name].totalBefore = value.buff.entries[entry.name].totalBefore || 0
               value.buff.entries[entry.name].totalBefore += entry.total
               value.buff.entries[entry.name].total += total
+              if (entry.type === 'Pet') {
+                value.buff.entries[entry.name].petOwnerId = entry.petOwnerId
+                value.buff.entries[entry.name].petOwnerName = entry.petOwnerName
+              }
             }
           })
         })
@@ -238,7 +242,7 @@ class FFLogs {
   damageDoneSimple(damageDone) {
     damageDone.entries.sort((e1, e2) => e2.personalDPS - e1.personalDPS)
     return damageDone.entries.map(entry => {
-      return {
+      const newEntry = {
         name: entry.name,
         id: entry.id,
         type: entry.type,
@@ -246,6 +250,11 @@ class FFLogs {
         personalDPS: entry.personalDPS.toFixed(1),
         personalDPSFull: entry.personalDPS
       }
+      if (newEntry.type === 'Pet') {
+        newEntry.petOwnerId = entry.petOwnerId,
+        newEntry.petOwnerName = entry.petOwnerName
+      }
+      return newEntry
     })
   }
 
@@ -255,7 +264,7 @@ class FFLogs {
       start: options.start || encounter.start_time,
       end: options.end || encounter.end_time,
       translate: true,
-      filter: 'source.type = "player" AND inCategory("damage") = "true"'
+      filter: 'target.disposition = "enemy" AND inCategory("damage") = "true"'
     })
 
     const onResult = result => {
@@ -282,15 +291,21 @@ class FFLogs {
     const entries = []
     events = events.filter(e => e.timestamp >= start && e.timestamp <= end)
     events.forEach(e => {
-      const player = this.getPlayer(encounter, e.sourceID)
-      let entry = entries.find(entry => entry.id === player.id)
+      const playerOrPet = this.getPlayer(encounter, e.sourceID) || encounter.friendlyPets.find(f => f.id === e.sourceID)
+      if (!playerOrPet || playerOrPet.name === 'Multiple Players') return
+      let entry = entries.find(entry => entry.id === playerOrPet.id)
       if (!entry) {
         entry = {
-          name: player.name,
-          id: player.id,
-          type: player.type,
-          guid: player.guid,
+          name: playerOrPet.name,
+          id: playerOrPet.id,
+          type: playerOrPet.type,
+          guid: playerOrPet.guid,
           total: e.amount
+        }
+        if (entry.type === 'Pet') {
+          const petOwner = this.getPlayer(encounter, playerOrPet.petOwner)
+          entry.petOwnerId = petOwner.id
+          entry.petOwnerName = petOwner.name
         }
         entries.push(entry)
       } else {
@@ -361,7 +376,12 @@ class FFLogs {
           source: buffEvent.sourceID,
           target: buffEvent.targetInstance || buffEvent.targetID
         }
-        if (!encounter.friendlies.find(f => f.id === range.target)) return // Ignore non-players/pets
+        // Ignore non-players/pets for buffs, but allow pets to get debuffs
+        if (!encounter.friendlies.find(f => f.id === range.target)) {
+          const pet = encounter.friendlyPets.find(f => f.id === range.target)
+          if (!pet || pet.name === 'Selene' || pet.name === 'Eos' ||
+            (buffEvent.type !== 'applydebuff' && buffEvent.type !== 'removedebuff')) return
+        }
         this.buffNameTransform(buff)
         buffMap[buff.name] = buff = (buffMap[buff.name] || buff)
         buff.bands = buff.bands || []

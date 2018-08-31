@@ -1,7 +1,7 @@
 const resources = require('./fflogs-resources')
 const changeLog = require('./change-log')
 const Result = require('./models/result')
-const debug = false
+const debug = true
 const dateOptions = {year: "numeric", month: "long", day: "numeric"}
 
 class Views {
@@ -187,6 +187,20 @@ class Views {
     data.damageDone.forEach(entry => {
       data.jobAmount[entry.type] = data.jobAmount[entry.type] || 0
       data.jobAmount[entry.type]++
+    })
+
+    data.contribution.forEach(buff => {
+      buff.entries.forEach(entry => {
+        if (entry.type === 'Pet') {
+          const ownerEntry = buff.entries.find(e => e.id === entry.petOwnerId)
+          if (ownerEntry) {
+            ownerEntry.total += entry.total
+            ownerEntry.totalBefore += entry.totalBefore
+            ownerEntry.dps += entry.dps
+            ownerEntry.dpsContribution += entry.dpsContribution
+          }
+        }
+      })
     })
 
     data.damageDone.forEach(entry => {
