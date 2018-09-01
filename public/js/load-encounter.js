@@ -11,6 +11,7 @@ function onProgress(err, res, body) {
     request('/api/encounter-progress/' + window.token, onProgress)
   } else {
     containerBody.innerHTML = Mustache.render(template, body)
+    window.activateTooltips()
   }
 }
 

@@ -1,13 +1,16 @@
 $(document).ready(function() {
+  window.activateTooltips = function() {
+    $('.tooltip-holder').tooltip({
+      placement: (tip, element) => {
+          var position = $(element).position()
+          if (position.top < 300)
+            return 'bottom'
+          return 'top'
+      }
+    })
+  }
 
-  $('.tooltip-holder').tooltip({
-    placement: (tip, element) => {
-        var position = $(element).position()
-        if (position.top < 300)
-          return 'bottom'
-        return 'top'
-    }
-  })
+  window.activateTooltips()
 
   window.selectLocation = function() {
     window.location = '/listing/' + $('#encounter-list').val()
