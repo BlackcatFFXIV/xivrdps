@@ -1,0 +1,41 @@
+<div class="container container-inner content">
+  <h4>{{encounter.name}} ({{encounter.timeTaken}})<h4>
+  <h5>{{encounter.zoneName}}</h5>
+  <h5><i>{{encounter.dateStr}} {{encounter.patchStr}}</i></h5>
+</div>
+<table class="table table-striped">
+  <tr>
+    <th class="type-icon"> </th>
+    <th>Name</th>
+    <th>Personal DPS</th>
+    <th>Contribution</th>
+    <th>From Other Buffs</th>
+    <th>Raid DPS</th>
+  </tr>
+  {{# damageDone}}
+  <tr>
+    <td class="type-icon"><img src="/img/class/{{type}}.png" alt="{{type}}" /></td>
+    <td>{{name}}</td>
+    <td>{{personalDPS}}</td>
+    <td>
+    {{# contributions}}
+      <span class="buff"><img src="/img/buffs/{{icon}}" alt="{{name}}" /> {{dps}}</span>
+    {{/contributions}}
+    </td>
+    <td><a class="tooltip-holder" title="{{#fromOtherBuffs}}<span class='buff'><img src='/img/buffs/{{buff.icon}}' alt='{{buff.name}}' /> {{dps}}</span>{{/fromOtherBuffs}}" data-html="true" rel="tooltip" href="#">{{penalty}}</a></td>
+    <td>{{raidDPS}}</td>
+  </tr>
+  {{/damageDone}}
+  <tr>
+    <td></td>
+    <td></td>
+    <td>{{totalPersonalDPS}}</td>
+    <td>{{totalContribution}}</td>
+    <td></td>
+    <td></td>
+</table>
+<div class="container container-inner content content-small">
+  <a role="button" href="https://www.fflogs.com/reports/{{encounter.id}}#fight={{encounter.fightId}}&type=damage-done" class="btn btn-primary">
+    Original Log
+  </a>
+</div>

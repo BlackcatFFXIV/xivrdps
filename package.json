@@ -19,6 +19,7 @@
     "mustache-express": "^1.2.2",
     "popper.js": "^1.12.9",
     "request": "^2.83.0",
-    "requestretry": "^1.12.2"
+    "requestretry": "^1.12.2",
+    "uuid": "^3.3.2"
   }
 }

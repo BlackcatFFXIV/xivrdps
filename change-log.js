@@ -1,6 +1,14 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('09-01-2018'),
+      description: '',
+      list: [
+        'Added a loading screen for non-cached encounters.'
+      ]
+    },
+
+    {
       date: new Date('08-31-2018'),
       description: '',
       list: [
