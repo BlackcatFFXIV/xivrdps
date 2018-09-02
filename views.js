@@ -74,6 +74,10 @@ class Views {
         }
       },
 
+      'reports/:id': (req, res) => {
+        res.render('redirect-fflogs-like-url', {})
+      },
+
       'encounters/:id/:fightId?': (req, res) => {
         const pipeline = new RaidDPSPipeline(
           this.fflogs,

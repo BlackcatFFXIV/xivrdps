@@ -7,7 +7,25 @@ input, select {
   background-color: #272b30;
   color: rgb(200, 200, 200);
   padding: 5px;
-  border-color: #666;
+  border-radius: 5px;
+  border: 2px solid #444;
+}
+
+input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+input:focus {
+ box-shadow:0px 0px 5px #6192D1;
+ -webkit-box-shadow: 0px 0px 5px  #6192D1;
+ -webkit-padding: 3px;
+
+  border-width: 2px;
+  border-color: transparent;
+  border-style: inset;
+
+ outline: 0;
 }
 
 .svg-icon {
@@ -98,15 +116,6 @@ span.buff {
 
 .clickable-row, .clickable-header {
   cursor: pointer;
-}
-
-input, select {
-  height: 35px;
-  background-color: #272b30;
-  border-radius: 5px;
-  color: rgb(200, 200, 200);
-  padding: 5px;
-  border-color: #666;
 }
 
 .form-group label {
@@ -221,4 +230,21 @@ hr {
     transform: scaleY(1.0);
     -webkit-transform: scaleY(1.0);
   }
+}
+
+label {
+  font-weight: 500;
+}
+
+.form-group-full {
+  display: flex;
+  margin-bottom: 0;
+}
+
+.form-group-full label {
+  margin-top: 5px;
+}
+
+.form-group-full input {
+  flex: 2;
 }

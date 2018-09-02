@@ -1,0 +1,16 @@
+<html>
+  <body>
+    <script type="text/javascript">
+      const id = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1)
+      const queryObject = {}
+      window.location.hash.substring(1).split('&').forEach(pair => {
+        const keyValue = pair.split('=')
+        if (keyValue.length === 1) keyValue.push(true)
+        queryObject[keyValue[0]] = keyValue[1]
+      })
+      let fight = ''
+      if (queryObject.fight !== 'last') fight = '/' + queryObject.fight
+      window.location = '/encounters/' + id + fight
+    </script>
+  </body>
+</html>
