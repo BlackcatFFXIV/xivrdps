@@ -20,7 +20,7 @@
       queryObject[keyValue[0]] = keyValue[1]
     })
     let fight = ''
-    if (queryObject.fight !== 'last') fight = '/' + queryObject.fight
+    if (queryObject.fight && queryObject.fight !== 'last') fight = '/' + queryObject.fight
     window.location = '/encounters/' + id + fight
   </script>
 </body>
