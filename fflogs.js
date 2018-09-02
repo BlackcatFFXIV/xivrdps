@@ -393,10 +393,11 @@ class FFLogs {
           range.source = firstOfJob.id
         }
         // Ignore non-players/pets for buffs, but allow pets to get debuffs
-        if (!encounter.friendlies.find(f => f.id === range.target)) {
-          const pet = encounter.friendlyPets.find(f => f.id === range.target)
-          if (!pet || pet.name === 'Selene' || pet.name === 'Eos' ||
-            (buffEvent.type !== 'applydebuff' && buffEvent.type !== 'removedebuff')) return
+        if (buffEvent.type !== 'applydebuff' && buffEvent.type !== 'removedebuff') {
+          if (!encounter.friendlies.find(f => f.id === range.target)) {
+            const pet = encounter.friendlyPets.find(f => f.id === range.target)
+            if (!pet || pet.name === 'Selene' || pet.name === 'Eos') return
+          }
         }
         this.buffNameTransform(buff)
         buffMap[buff.name] = buff = (buffMap[buff.name] || buff)

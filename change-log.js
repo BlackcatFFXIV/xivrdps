@@ -1,6 +1,17 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('09-02-2018'),
+      description: 'Launched domain - http://www.xivrdps.com',
+      list: [
+        'Launched the new domain name',
+        'Fixed a bug regarding loading certain debuffs under certain circumstances',
+        'You can replace an http://www.fflogs.com/reports/... URL with http://www.xivrdps.com/reports/... and it will get the correct encounter.',
+        'Loading damage contribution will now display a progress bar, since it\'s the longest process (it gets the entire damage event timeline).'
+      ]
+    },
+    
+    {
       date: new Date('09-01-2018'),
       description: '',
       list: [
