@@ -248,3 +248,17 @@ label {
 .form-group-full input {
   flex: 2;
 }
+
+.progress-container {
+  width: 100%;
+}
+
+.stage-progress {
+  width: 500px;
+  margin: 0 auto;
+  margin-top: 10px;
+}
+
+.stage-progress-bar {
+  background-color: #007bff;
+}

@@ -1,3 +1,7 @@
+if (window.location.host === 'xivrdps.herokuapp.com') {
+  window.location = window.location.href.replace(window.location.host, 'www.xivrdps.com')
+}
+
 $(document).ready(function() {
   window.activateTooltips = function() {
     $('.tooltip-holder').tooltip({

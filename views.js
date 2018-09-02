@@ -138,7 +138,8 @@ class Views {
                 type: 'progress',
                 stage: pipeline.currentStage,
                 nextStage: pipeline.stageList[pipeline.stageNumber + 1],
-                completedStages: pipeline.completedStages
+                completedStages: pipeline.completedStages,
+                progressInfo: pipeline.progressInfo || {}
               })
               sent = true
             }
@@ -176,11 +177,7 @@ class Views {
       },
 
       '*': (req, res) => {
-        if (req.headers.host === 'localhost:5000') {
-          res.status(301).redirect('http://www.xivrdps.com/' + req.originalUrl)
-        } else {
-          res.redirect('/')
-        }
+        res.redirect('/')
       }
     }
 

@@ -30,6 +30,7 @@ class RaidDPSPipeline {
   callNextStage(results) {
     try {
       this.completedStages.push(this.currentStage)
+      this.progressInfo = {}
       this.onProgress(this)
       const oldInfo = this.stageInfo[this.currentStage]
       const oldStage = this.currentStage
@@ -86,6 +87,9 @@ RaidDPSPipeline.prototype.stages = {
         damageDone: this.fflogs.damageDoneSimple(results.damageDone),
         contribution: this.fflogs.damageContributionSimple(contribution)
       })
+    }, progressInfo => {
+      this.progressInfo = progressInfo
+      this.onProgress(this)
     })
   },
 

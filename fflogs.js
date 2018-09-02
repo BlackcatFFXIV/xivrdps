@@ -114,7 +114,7 @@ class FFLogs {
     Object.values(newBuffs).forEach(b => buffs.push(b))
   }
 
-  damageFromBuffs(encounter, buffs, options, cb) {
+  damageFromBuffs(encounter, buffs, options, cb, onProgress) {
     this.damageEvents(encounter, {}, events => {
       options = Object.assign({}, options, {
         start: options.start || encounter.start_time,
@@ -231,7 +231,7 @@ class FFLogs {
       }).catch(e => {
         console.log('Rejection: ', e)
       })
-    })
+    }, onProgress)
   }
 
   damageContributionSimple(buffs) {
@@ -263,16 +263,20 @@ class FFLogs {
     })
   }
 
-  damageEvents(encounter, options, cb) {
+  damageEvents(encounter, options, cb, onProgress) {
     let events = []
+    let init = false
     options = Object.assign({}, options, {
       start: options.start || encounter.start_time,
       end: options.end || encounter.end_time,
       translate: true,
       filter: 'target.disposition = "enemy" AND inCategory("damage") = "true"'
     })
+    const originalStart = options.start
 
     const onResult = result => {
+      if (init) onProgress({start: originalStart, progress: options.start, end: options.end})
+      init = true
       if (!result || !result.events || result.error) {
         if (result && !result.events && !result.error) result.error = 'No entries found.'
         cb(result)
