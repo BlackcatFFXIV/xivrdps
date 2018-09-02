@@ -1,5 +1,5 @@
 if (window.location.host === 'xivrdps.herokuapp.com') {
-  window.location = window.location.href.replace(window.location.host, 'www.xivrdps.com')
+  window.location = window.location.href.replace('https', 'http').replace(window.location.host, 'www.xivrdps.com')
 }
 
 $(document).ready(function() {
