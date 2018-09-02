@@ -1,16 +1,27 @@
-<html>
-  <body>
-    <script type="text/javascript">
-      const id = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1)
-      const queryObject = {}
-      window.location.hash.substring(1).split('&').forEach(pair => {
-        const keyValue = pair.split('=')
-        if (keyValue.length === 1) keyValue.push(true)
-        queryObject[keyValue[0]] = keyValue[1]
-      })
-      let fight = ''
-      if (queryObject.fight !== 'last') fight = '/' + queryObject.fight
-      window.location = '/encounters/' + id + fight
-    </script>
-  </body>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>XIV Raid DPS Calculator</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/bootswatch.min.css">
+  <link rel="stylesheet" href="/css/tether.min.css">
+  <link rel="stylesheet" href="/css/tether-theme-arrows-dark.css">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+  <script type="text/javascript">
+    const id = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1)
+    const queryObject = {}
+    window.location.hash.substring(1).split('&').forEach(pair => {
+      const keyValue = pair.split('=')
+      if (keyValue.length === 1) keyValue.push(true)
+      queryObject[keyValue[0]] = keyValue[1]
+    })
+    let fight = ''
+    if (queryObject.fight !== 'last') fight = '/' + queryObject.fight
+    window.location = '/encounters/' + id + fight
+  </script>
+</body>
 </html>
