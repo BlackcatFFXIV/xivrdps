@@ -176,7 +176,11 @@ class Views {
       },
 
       '*': (req, res) => {
-        res.redirect('/')
+        if (req.headers.host === 'localhost:5000') {
+          res.status(301).redirect('http://www.xivrdps.com/' + req.originalUrl)
+        } else {
+          res.redirect('/')
+        }
       }
     }
 
