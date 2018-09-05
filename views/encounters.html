@@ -37,6 +37,13 @@
       <td></td>
       <td></td>
   </table>
+  <div class="container container-inner content">
+    <button class="btn btn-primary" id="details-button" type="button" data-toggle="collapse" data-target="#details-panel" aria-expanded="false" aria-controls="details-panel">
+      Details
+    </button>
+    <div id="details-body-container">
+    </div>
+  </div>
   <div class="container container-inner content content-small">
     <a role="button" href="https://www.fflogs.com/reports/{{encounter.id}}#fight={{encounter.fightId}}&type=damage-done" class="btn btn-primary">
       Original Log
@@ -45,5 +52,13 @@
     {{> links}}
   </div>
 </div>
+<script src="/js/mustache.js" type="text/javascript"></script>
+<script src="/js/request.js" type="text/javascript"></script>
+<script type="text/javascript">
+  window.isCachedEncounter = true
+  window.encounterId = '{{encounter.id}}'
+  window.fightId = '{{encounter.fightId}}'
+</script>
+<script src="/js/load-encounter.js" type="text/javascript"></script>
 
 {{> footer}}

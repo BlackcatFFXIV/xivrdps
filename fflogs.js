@@ -144,7 +144,7 @@ class FFLogs {
                 const isSolo = (!band.timeDilatedAOE && band.targets.length === 1)
                 if (isSolo) encounter.soloCards++
                 resolve({buff: buff, source: band.source, targets: band.targets, damageDone: damageDone, start: band.startTime,
-                  end: band.endTime, timeDilatedAOE: band.timeDilatedAOE, isExtendedCard: band.isExtendedCard, isSolo: isSolo})
+                  end: band.endTime || options.end, timeDilatedAOE: band.timeDilatedAOE, isExtendedCard: band.isExtendedCard, isSolo: isSolo})
               }
             })
           }))
@@ -168,8 +168,16 @@ class FFLogs {
       }
 
       Promise.all(promises).then(values => {
+        const buffFullDetail = {}
         encounter.oldRoyalRoad = ((encounter.soloCards / encounter.cardsAmount) > 0.2) ? 'Enhanced Royal Road' : ''
         values.forEach(value => {
+          let band = null
+          buffFullDetail[value.buff.name] = buffFullDetail[value.buff.name] ||
+            {name: value.buff.name, abilityIcon: value.buff.abilityIcon, guid: value.buff.guid, sources: {}}
+          buffFullDetail[value.buff.name].sources[value.source] = buffFullDetail[value.buff.name].sources[value.source] || {source: value.source, bands: []}
+          band = {start: value.start, end: value.end, entries: []}
+          buffFullDetail[value.buff.name].sources[value.source].bands.push(band)
+
           const simpleDamage = this.damageDoneSimple(value.damageDone)
           simpleDamage.forEach(entry => {
             const type = resources.buffs[encounter.patch][value.buff.name].type
@@ -195,9 +203,12 @@ class FFLogs {
               source.entries[entry.name].totalBefore = source.entries[entry.name].totalBefore || 0
               source.entries[entry.name].totalBefore += entry.total
               source.entries[entry.name].total += total
+              band.entries.push({name: entry.name, id: entry.id, type: entry.type, total: total, totalBefore: entry.total})
               if (entry.type === 'Pet') {
                 source.entries[entry.name].petOwnerId = entry.petOwnerId
                 source.entries[entry.name].petOwnerName = entry.petOwnerName
+                band.entries[band.entries.length - 1].petOwnerId = entry.petOwnerId
+                band.entries[band.entries.length - 1].petOwnerName = entry.petOwnerName
               }
             }
           })
@@ -227,7 +238,7 @@ class FFLogs {
           buff.entries = Object.values(buff.entries)
         })
 
-        cb(buffs)
+        cb(buffs, buffFullDetail)
       }).catch(e => {
         console.log('Rejection: ', e)
       })

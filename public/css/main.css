@@ -156,6 +156,16 @@ hr {
   margin: 10px;
 }
 
+.details-range-entry {
+  background-color: #272b30;
+  border-radius: 5px;
+  width: 200px;
+  height: 100px;
+  display: inline-table;
+  padding: 20px;
+  margin: 10px;
+}
+
 .buff-content {
 }
 
@@ -261,4 +271,11 @@ label {
 
 .stage-progress-bar {
   background-color: #007bff;
+}
+
+.content-panel {
+  background-color: #2e3338;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
 }

@@ -78,14 +78,16 @@ RaidDPSPipeline.prototype.stages = {
   },
 
   'Damage Contribution': function(results) {
-    this.fflogs.damageFromBuffs(results.encounter, results.buffs, {}, contribution => {
+    this.fflogs.damageFromBuffs(results.encounter, results.buffs, {}, (contribution, damageFromBuffs) => {
       if (!contribution || contribution.error) throw contribution
       this.callNextStage({
         id: results.encounter.id,
         fightId: results.encounter.fightId,
         encounter: results.encounter,
         damageDone: this.fflogs.damageDoneSimple(results.damageDone),
-        contribution: this.fflogs.damageContributionSimple(contribution)
+        contribution: this.fflogs.damageContributionSimple(contribution),
+        damageFromBuffs: this.damageFromBuffs(damageFromBuffs),
+        buffsBySource: this.buffsBySource(damageFromBuffs, results.encounter)
       })
     }, progressInfo => {
       this.progressInfo = progressInfo
@@ -101,6 +103,37 @@ RaidDPSPipeline.prototype.stages = {
     console.log('pipeline => Done', getDiffInSeconds(info.timestamp, startInfo.timestamp))
     this.onSuccess(this.playersView(result))
   }
+}
+
+RaidDPSPipeline.prototype.buffsBySource = function(data, encounter) {
+  const damageFromBuffs = Object.values(data)
+  const sources = {}
+  const encounterDuration = encounter.end_time - encounter.start_time
+  damageFromBuffs.forEach(buff => {
+    buff.sources.forEach(source => {
+      const playerName = this.fflogs.getPlayer(encounter, source.source).name
+      sources[playerName] = sources[playerName] || {playerName: playerName, playerId: source.source, buffs: []}
+      sources[playerName].buffs.push({buffIcon: buff.abilityIcon, buffId: buff.guid, buffName: buff.name, playerId: source.source})
+      source.bands = source.bands.filter(band => band.entries.length && band.end - band.start > 4000)
+      source.bands.forEach(band => {
+        band.entries = band.entries.filter(entry => entry.type !== 'LimitBreak' && entry.id !== source.source)
+        band.entries.forEach(entry => {
+          entry.buffDPS = parseFloat((entry.total / encounterDuration * 1000).toFixed(2))
+          entry.totalDPS = parseFloat((entry.totalBefore / encounterDuration * 1000).toFixed(2))
+          entry.totalStr = parseFloat(entry.total.toFixed(2))
+        })
+      })
+    })
+  })
+  return Object.values(sources)
+}
+
+RaidDPSPipeline.prototype.damageFromBuffs = function(data) {
+  const damageFromBuffs = Object.values(data)
+  damageFromBuffs.forEach(buff => {
+    buff.sources = Object.values(buff.sources)
+  })
+  return damageFromBuffs
 }
 
 RaidDPSPipeline.prototype.playersView = function(data) {

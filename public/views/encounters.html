@@ -34,6 +34,14 @@
     <td></td>
     <td></td>
 </table>
+<div class="container container-inner content">
+  <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#details-panel" aria-expanded="false" aria-controls="details-panel">
+    Details
+  </button>
+  <div id="details-body-container">
+    {{> details-panel}}
+  </div>
+</div>
 <div class="container container-inner content content-small">
   <a role="button" href="https://www.fflogs.com/reports/{{encounter.id}}#fight={{encounter.fightId}}&type=damage-done" class="btn btn-primary">
     Original Log

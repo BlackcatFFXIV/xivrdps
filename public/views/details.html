@@ -1,0 +1,15 @@
+{{#bands}}
+  <div class="details-range">
+    <h4>{{startStr}} - {{endStr}}</h4>
+    {{#entries}}
+    <div class="details-range-entry">
+      <img src="/img/class/{{type}}.png" alt="{{type}}" /> {{name}}
+      <br/>
+      <br/>From Buff: {{totalStr}}
+      <br>&#9658;&nbsp;&nbsp;&nbsp;<i>DPS: {{buffDPS}}</i>
+      <br/>Total: {{totalBefore}}
+      <br>&#9658;&nbsp;&nbsp;&nbsp;<i>DPS: {{totalDPS}}</i>
+    </div>
+    {{/entries}}
+  </div>
+{{/bands}}

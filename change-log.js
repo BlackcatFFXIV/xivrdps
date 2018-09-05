@@ -1,6 +1,16 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('09-05-2018'),
+      description: '',
+      list: [
+        'Added details panel. If the encounter has been cached, the details button will trigger a load (these details will not be cached). This details panel ' +
+          'will show timelines of buff contribution in a more granular way. There might be extra ranges than you expect based on pets being desummoned (in turning into demi-bahamut) ' +
+          'or players dying, since that would naturally remove buffs.'
+      ]
+    },
+
+    {
       date: new Date('09-02-2018'),
       description: 'Launched domain - http://www.xivrdps.com',
       list: [
@@ -10,7 +20,7 @@ const ChangeLog = {
         'Loading damage contribution will now display a progress bar, since it\'s the longest process (it gets the entire damage event timeline).'
       ]
     },
-    
+
     {
       date: new Date('09-01-2018'),
       description: '',

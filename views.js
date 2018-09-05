@@ -165,14 +165,24 @@ class Views {
       },
 
       'api/encounters/:id/:fightId?': (req, res) => {
+        const showProgress = (req.query.showProgress === '' || req.query.showProgress === true)
         const pipeline = new RaidDPSPipeline(
           this.fflogs,
           req,
           res,
           progress => {},
-          results => res.json(results),
-          error => res.json(error)
+          results => {
+            if (!showProgress) res.json(results)
+          },
+          error => {
+            res.json(error)
+            delete pipelines[pipeline.token]
+          }
         )
+        if (showProgress) {
+          pipelines[pipeline.token] = pipeline
+          res.json({token: pipeline.token})
+        }
         pipeline.start()
       },
 

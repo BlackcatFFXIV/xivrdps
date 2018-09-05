@@ -1,0 +1,13 @@
+<div class="collapse content-panel" id="details-panel">
+  <select id="buffs-list">
+    <option>Select Buff Timelines</option>
+    {{#buffsBySource}}
+      <optgroup label="{{playerName}}">
+        {{#buffs}}
+        <option value="{{buffId}}_{{playerId}}">{{buffName}}</option>
+        {{/buffs}}
+      </optgroup>
+    {{/buffsBySource}}
+  </select>
+  <div class="details-body"></div>
+</div>
