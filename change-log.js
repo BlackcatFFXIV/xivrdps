@@ -6,7 +6,8 @@ const ChangeLog = {
       list: [
         'Added details panel. If the encounter has been cached, the details button will trigger a load (these details will not be cached). This details panel ' +
           'will show timelines of buff contribution in a more granular way. There might be extra ranges than you expect based on pets being desummoned (in turning into demi-bahamut) ' +
-          'or players dying, since that would naturally remove buffs.'
+          'or players dying, since that would naturally remove buffs.',
+        'Buffs that are prepull or are removed after the encounter has ended now are tracked again.'
       ]
     },
 

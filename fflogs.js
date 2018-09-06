@@ -422,9 +422,13 @@ class FFLogs {
           buff.bands.push(range)
         } else if (buffEvent.type === 'removebuff' || buffEvent.type === 'removedebuff') {
           let buffsToTarget = buff.bands
-            .filter(r => (r.target === range.target) && !r.endTime)
-          range = buffsToTarget[buffsToTarget.length - 1]
-          if (range) range.endTime = buffEvent.timestamp
+            .filter(r => r && (r.target === range.target) && !r.endTime)
+          const existingRange = buffsToTarget[buffsToTarget.length - 1]
+          if (existingRange) {
+            existingRange.endTime = buffEvent.timestamp
+          } else {
+            buff.bands.push(range)
+          }
         }
       })
       this.consolidateTargetsOfBuffs(encounter, buffMap)
@@ -437,6 +441,9 @@ class FFLogs {
       const bandsMap = {}
       const isCard = resources.buffs[encounter.patch][buff.name].isCard
       buff.bands.forEach(band => {
+        if (band.startTime === undefined && band.endTime === undefined) return
+        if (band.startTime === undefined) band.startTime = encounter.start_time
+        if (band.endTime === undefined) band.endTime = encounter.end_time
         let key = getKey(band.startTime, band.endTime)
         if (isCard) encounter.cardsAmount++
         if (isCard && band.endTime - band.startTime > 60000) band.isExtendedCard = true
