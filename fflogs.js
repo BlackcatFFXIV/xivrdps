@@ -44,6 +44,7 @@ class FFLogs {
           encounter.friendlies = result.friendlies
           encounter.friendlyPets = result.friendlyPets
           encounter.enemies = result.enemies
+          encounter.targetBlacklist = resources.targetBlacklist[encounter.boss] || []
           cb(encounter)
         }
       }
@@ -136,7 +137,7 @@ class FFLogs {
         buff.entries = {}
         buff.bands.forEach(band => {
           promises.push(new Promise((resolve, reject) => {
-            this.damageDoneFromEvents(encounter, events, band.startTime, band.endTime, damageDone => {
+            this.damageDoneFromEvents(encounter, events, band.startTime, band.endTime, buff, band, damageDone => {
               if (!damageDone || damageDone.error) {
                 reject(damageDone)
               } else {
@@ -173,9 +174,10 @@ class FFLogs {
         values.forEach(value => {
           let band = null
           buffFullDetail[value.buff.name] = buffFullDetail[value.buff.name] ||
-            {name: value.buff.name, abilityIcon: value.buff.abilityIcon, guid: value.buff.guid, sources: {}}
+            {name: value.buff.name, abilityIcon: value.buff.abilityIcon, guid: value.buff.guid, sources: {}, type: value.buff.type}
           buffFullDetail[value.buff.name].sources[value.source] = buffFullDetail[value.buff.name].sources[value.source] || {source: value.source, bands: []}
           band = {start: value.start, end: value.end, entries: []}
+          if (value.buff.type === 'debuff') band.enemyTarget = value.targets[0]
           buffFullDetail[value.buff.name].sources[value.source].bands.push(band)
 
           const simpleDamage = this.damageDoneSimple(value.damageDone)
@@ -307,10 +309,16 @@ class FFLogs {
     this.request('events/' + encounter.id, options, onResult)
   }
 
-  damageDoneFromEvents(encounter, events, start, end, cb) {
+  damageDoneFromEvents(encounter, events, start, end, buff, band, cb) {
     const entries = []
     events = events.filter(e => e.timestamp >= start && e.timestamp <= end)
     events.forEach(e => {
+      if (buff.type === 'debuff') {
+        const target = band.targets[0]
+        if (target !== e.targetID) return
+        const enemy = encounter.enemies.find(en => en.id === target)
+        if (enemy && encounter.targetBlacklist.indexOf(enemy.name) !== -1) return
+      }
       const playerOrPet = this.getPlayer(encounter, e.sourceID) || encounter.friendlyPets.find(f => f.id === e.sourceID)
       if (!playerOrPet || playerOrPet.name === 'Multiple Players') return
       let entry = entries.find(entry => entry.id === playerOrPet.id)
@@ -390,11 +398,16 @@ class FFLogs {
         let buff = {
           name: buffEvent.ability.name,
           guid: buffEvent.ability.guid,
-          abilityIcon: buffEvent.ability.abilityIcon
+          abilityIcon: buffEvent.ability.abilityIcon,
+          type: buffEvent.type.replace(/remove|apply/g, '')
         }
         let range = {
           source: buffEvent.sourceID,
-          target: buffEvent.targetInstance || buffEvent.targetID
+          target: buffEvent.targetID
+        }
+        if (buff.type === 'debuff') {
+          const enemy = encounter.enemies.find(e => e.id === range.target)
+          if (enemy && encounter.targetBlacklist.indexOf(enemy.name) !== -1) return
         }
         const sourcePet = encounter.friendlyPets.find(f => f.id === range.source)
         if (sourcePet) range.source = sourcePet.petOwner
@@ -413,20 +426,24 @@ class FFLogs {
         this.buffNameTransform(buff)
         buffMap[buff.name] = buff = (buffMap[buff.name] || buff)
         buff.bands = buff.bands || []
+        if (range.source === undefined || range.target === undefined) return
         if (buffEvent.type === 'applybuff' || buffEvent.type === 'applydebuff') {
           let buffsToTarget = buff.bands
             .filter(r => (r.target === range.target) && !r.endTime)
           let oldRange = buffsToTarget[buffsToTarget.length - 1]
-          if (oldRange) oldRange.endTime = buffEvent.timestamp // overridden buff
-          range.startTime = buffEvent.timestamp
-          buff.bands.push(range)
+          // As long as this isn't an overridden buff, add a new buff range.
+          if (!oldRange) {
+            range.startTime = buffEvent.timestamp
+            buff.bands.push(range)
+          }
         } else if (buffEvent.type === 'removebuff' || buffEvent.type === 'removedebuff') {
           let buffsToTarget = buff.bands
             .filter(r => r && (r.target === range.target) && !r.endTime)
           const existingRange = buffsToTarget[buffsToTarget.length - 1]
           if (existingRange) {
             existingRange.endTime = buffEvent.timestamp
-          } else {
+          } else if (buff.bands.filter(r => r && (r.target === range.target)).length === 0) {
+            range.start = encounter.start_time
             buff.bands.push(range)
           }
         }
@@ -442,7 +459,6 @@ class FFLogs {
       const isCard = resources.buffs[encounter.patch][buff.name].isCard
       buff.bands.forEach(band => {
         if (band.startTime === undefined && band.endTime === undefined) return
-        if (band.startTime === undefined) band.startTime = encounter.start_time
         if (band.endTime === undefined) band.endTime = encounter.end_time
         let key = getKey(band.startTime, band.endTime)
         if (isCard) encounter.cardsAmount++

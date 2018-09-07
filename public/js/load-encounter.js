@@ -34,9 +34,17 @@ function loadEncounter(token, templateNames) {
         const buff = body.damageFromBuffs.find(b => b.guid.toString() === buffId)
         const source = buff.sources.find(source => source.source.toString() === playerId)
         const view = {bands: source.bands}
+        if (body.encounter.targetBlacklist.length) {
+          view.hasTargetBlacklist = true
+          view.targetBlacklist = body.encounter.targetBlacklist.join(', ')
+        }
         view.bands.forEach(band => {
           band.startStr = timeStr(intervalObj(band.start - body.encounter.start_time))
           band.endStr = timeStr(intervalObj(band.end - body.encounter.start_time))
+          if (buff.type === 'debuff') {
+            const enemy = body.encounter.enemies.find(enemy => enemy.id === band.enemyTarget)
+            if (enemy) band.debuffTargetString = 'to ' + enemy.name + ' #' + enemy.id
+          }
         })
         $('.details-body').html(Mustache.render(templates['details'], view))
       })

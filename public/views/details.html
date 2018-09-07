@@ -1,6 +1,12 @@
+{{#hasTargetBlacklist}}
+<h5>The following enemies will be excluded: {{targetBlacklist}}</h5>
+{{/hasTargetBlacklist}}
 {{#bands}}
   <div class="details-range">
     <h4>{{startStr}} - {{endStr}}</h4>
+      {{#debuffTargetString}}
+        <h5>{{debuffTargetString}}</h5>
+      {{/debuffTargetString}}
     {{#entries}}
     <div class="details-range-entry">
       <img src="/img/class/{{type}}.png" alt="{{type}}" /> {{name}}

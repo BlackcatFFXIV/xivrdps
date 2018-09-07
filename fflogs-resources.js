@@ -106,6 +106,11 @@ const FFLogsResources = {
     {name: 'Rabanastre', encounters: {'Mateus, the Corrupt': '2008', 'Hashmal, Bringer of Order': '2009', 'Rofocale': '2010', 'Argath Thadalfus': '2011'}}
   ],
 
+  targetBlacklist: {
+    '52': ['Easterly'],
+    '53': ['Bibliolatrist']
+  },
+
   worlds: {
     NA: [
       'Adamantoise',

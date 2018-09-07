@@ -1,6 +1,17 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('09-07-2018'),
+      description: 'Debuffs and damage from debuffs will now be categorized by enemy target.',
+      list: [
+        'The "prepull" check wasn\'t checking if there were aren\'t instances of that buff applied, now if there\'s any ranges defined for that buff, it won\'t count as prepull',
+        'It was adding debuffs for each enemy target. Splitting them up is actually correct, but I needed to split that up in the damage event calculation too so there are not a bunch of duplicate damage calculations.',
+        'Overridden buffs were generating new ranges instead of simply overriding.',
+        'A target blacklist now exists for xivrdps as well, since events do not blacklist anything. For example, Easterly from O6S will no longer be considered as a valid debuff/damage target.'
+      ]
+    },
+
+    {
       date: new Date('09-05-2018'),
       description: '',
       list: [
