@@ -615,15 +615,25 @@ class FFLogs {
         console.log(body)
         cb(body)
       } else {
+        let encounters = {}
         body.forEach(encounter => {
-          encounter.specs.forEach(spec => {
-            spec.data.forEach(data => {
-              data.durationStr = timeStr(intervalObj(data.duration))
-              data.startTime = new Date(data.start_time).toLocaleTimeString('en-us', dateOptions)
-            })
+          const spec = encounter.spec
+          encounters[encounter.encounterName] = encounters[encounter.encounterName] || {name: encounter.encounterName, id: encounter.encounterId, specs: {}}
+          encounters[encounter.encounterName].specs[spec] = encounters[encounter.encounterName].specs[spec] || {spec: spec, icon: spec.replace(' ', ''), data: []}
+          encounters[encounter.encounterName].specs[spec].data.push({
+            durationStr: timeStr(intervalObj(encounter.duration)),
+            startTime: new Date(encounter.startTime).toLocaleTimeString('en-us', dateOptions),
+            reportId: encounter.reportID,
+            fightId: encounter.fightID,
+            total: encounter.total,
+            patch: encounter.ilvlKeyOrPatch
           })
         })
-        cb(body)
+        encounters = Object.values(encounters)
+        encounters.forEach(encounter => {
+          encounter.specs = Object.values(encounter.specs)
+        })
+        cb(encounters)
       }
     })
   }

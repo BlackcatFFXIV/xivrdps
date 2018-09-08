@@ -7,20 +7,20 @@
       {{# characterEncounters}}
       <h4>{{name}}</h4>
       {{# specs}}
-      <h5><img src="/img/class/{{spec}}.png" alt="{{spec}}" /> {{spec}}</h5>
+      <h5><img src="/img/class/{{icon}}.png" alt="{{spec}}" /> {{spec}}</h5>
       <table class="table table-striped">
         <tr>
           <th>Personal DPS</th>
           <th>Duration</th>
           <th>Date</th>
-          <th>Guild</th>
+          <th>Patch</th>
         </tr>
         {{# data}}
         <tr class="link-row">
-          <td><a href="/encounters/{{report_code}}/{{report_fight}}">{{persecondamount}}</a></td>
+          <td><a href="/encounters/{{reportId}}/{{fightId}}">{{total}}</a></td>
           <td>{{durationStr}}</td>
           <td>{{startTime}}</td>
-          <td>{{guild}}</td>
+          <td>{{patch}}</td>
         </tr>
         {{/data}}
       </table>
