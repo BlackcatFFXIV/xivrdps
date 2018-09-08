@@ -512,7 +512,8 @@ class FFLogs {
           if (existingRange) {
             existingRange.endTime = buffEvent.timestamp
           } else if (buff.bands.filter(r => r && (r.target === range.target)).length === 0) {
-            range.start = encounter.start_time
+            range.startTime = encounter.start_time
+            range.endTime = buffEvent.timestamp
             buff.bands.push(range)
           }
         }

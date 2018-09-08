@@ -2,7 +2,7 @@ const resources = require('./fflogs-resources')
 const changeLog = require('./change-log')
 const Result = require('./models/result')
 const RaidDPSPipeline = require('./raid-dps-pipeline')
-const debug = false
+const debug = true
 const dateOptions = {year: "numeric", month: "long", day: "numeric"}
 const pipelines = {}
 
