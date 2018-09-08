@@ -388,7 +388,7 @@ class FFLogs {
     const minGCD = 1500
     const maxGCD = 4500
     events.forEach(e => {
-      if (this.isGCDDamage(e) && e.ability.name !== 'Attack' && e.ability.name !== 'Shot') {
+      if (this.isGCDDamage(e)) {
         const interval = timestamps[e.sourceID] && timestamps[e.sourceID].length ?
           (e.timestamp - timestamps[e.sourceID][timestamps[e.sourceID].length - 1].timestamp) :
           0
@@ -411,7 +411,8 @@ class FFLogs {
   }
 
   isGCDDamage(e) {
-    return (!e.tick && resources.ogcdAbilities.indexOf(e.ability.guid) === -1)
+    return (!e.tick && resources.ogcdAbilities.indexOf(e.ability.guid) === -1 &&
+      e.ability.name !== 'Attack' && e.ability.name !== 'Shot')
   }
 
   buffEvents(encounter, options, cb) {
