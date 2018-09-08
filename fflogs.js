@@ -128,7 +128,7 @@ class FFLogs {
       buffs.filter(b => b.name === 'Embolden').forEach(b => this.splitEmbolden(buffs, b))
       buffs.forEach(buff => {
         const bonus = resources.buffs[encounter.patch][buff.name].bonus
-        if (!resources.buffs[encounter.patch][buff.name].bonus) {
+        if (!resources.buffs[encounter.patch][buff.name].bonus && !resources.buffs[encounter.patch][buff.name].haste) {
           if (resources.buffs[encounter.patch][buff.name].isRoyalRoad) {
             royalRoads.push(buff)
           }
@@ -190,15 +190,20 @@ class FFLogs {
             if (!targeted && debuff) targeted = true
             if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
             if (targeted) {
-              const isSolo = value.isSolo
-              if (isCard) consumeRoyalRoad(value)
-              const bonus = resources.buffs[encounter.patch][value.buff.name].bonus
-              let soloBonus = isCard ? 0.5 : 1
-              if (isCard && isSolo) {
-                if (!encounter.supportsRoyalRoad) value.buff.royalRoad = encounter.oldRoyalRoad
-                soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 1.5 : 1
+              let total = 0
+              if (type !== 'haste') {
+                const isSolo = value.isSolo
+                if (isCard) consumeRoyalRoad(value)
+                let bonus = resources.buffs[encounter.patch][value.buff.name].bonus
+                let soloBonus = isCard ? 0.5 : 1
+                if (isCard && isSolo) {
+                  if (!encounter.supportsRoyalRoad) value.buff.royalRoad = encounter.oldRoyalRoad
+                  soloBonus = value.buff.royalRoad === 'Enhanced Royal Road' ? 1.5 : 1
+                }
+                total = ((entry.total * (bonus * soloBonus)) / (1 + (bonus * soloBonus)))
+              } else {
+                total = entry.damageFromBuff || 0
               }
-              const total = ((entry.total * (bonus * soloBonus)) / (1 + (bonus * soloBonus)))
               value.buff.entries[value.source] = value.buff.entries[value.source] || {source: value.source, entries: {}}
               const source = value.buff.entries[value.source]
               source.entries[entry.name] = source.entries[entry.name] || {name: entry.name, type: entry.type, total: 0, id: entry.id}
@@ -268,6 +273,9 @@ class FFLogs {
         personalDPS: entry.personalDPS.toFixed(1),
         personalDPSFull: entry.personalDPS
       }
+      if (entry.damageFromBuff) {
+        newEntry.damageFromBuff = entry.damageFromBuff
+      }
       if (newEntry.type === 'Pet') {
         newEntry.petOwnerId = entry.petOwnerId,
         newEntry.petOwnerName = entry.petOwnerName
@@ -300,6 +308,7 @@ class FFLogs {
           this.damageDoneRequestCount++
           this.request('events/' + encounter.id, options, onResult)
         } else {
+          this.findAverageGCDs(encounter, events)
           cb(events)
         }
       }
@@ -311,6 +320,19 @@ class FFLogs {
 
   damageDoneFromEvents(encounter, events, start, end, buff, band, cb) {
     const entries = []
+    let bonus = resources.buffs[encounter.patch][buff.name].bonus
+    const type = resources.buffs[encounter.patch][buff.name].type
+    const isSolo = (!band.timeDilatedAOE && band.targets.length === 1 && buff.type !== 'debuff')
+    const isCard = resources.buffs[encounter.patch][buff.name].isCard
+    let soloBonus = isCard ? 0.5 : 1
+    let haste = 0
+    if (type === 'haste') {
+      if (isCard && isSolo) {
+        if (!encounter.supportsRoyalRoad) buff.royalRoad = encounter.oldRoyalRoad
+        soloBonus = buff.royalRoad === 'Enhanced Royal Road' ? 1.5 : 1
+      }
+      haste = resources.buffs[encounter.patch][buff.name].haste * soloBonus
+    }
     events = events.filter(e => e.timestamp >= start && e.timestamp <= end)
     events.forEach(e => {
       if (buff.type === 'debuff') {
@@ -328,7 +350,9 @@ class FFLogs {
           id: playerOrPet.id,
           type: playerOrPet.type,
           guid: playerOrPet.guid,
-          total: e.amount
+          total: e.amount,
+          gcdDamage: 0,
+          gcdCount: 0
         }
         if (entry.type === 'Pet') {
           const petOwner = this.getPlayer(encounter, playerOrPet.petOwner)
@@ -339,11 +363,55 @@ class FFLogs {
       } else {
         entry.total += e.amount
       }
+      if (haste && this.isGCDDamage(e)) {
+        entry.gcdCount++
+        entry.gcdDamage += e.amount
+      }
     })
     entries.forEach(entry => {
+      if (haste && entry.gcdCount && entry.type !== 'Pet' && entry.type !== 'LimitBreak') {
+        const player = this.getPlayer(encounter, entry.id)
+        const gcdDamageAverage = entry.gcdDamage / entry.gcdCount
+        const duration = end - start
+        const gcdsGained = ((1 / (1 - haste)) - 1) * duration / player.averageGCD
+        entry.damageFromBuff = gcdDamageAverage * gcdsGained
+      }
+      delete entry.gcdDamage
+      delete entry.gcdCount
       entry.personalDPS = entry.total / encounter.totalTime * 1000
     })
     cb({entries: entries})
+  }
+
+  findAverageGCDs(encounter, events) {
+    const timestamps = {}
+    const minGCD = 1500
+    const maxGCD = 4500
+    events.forEach(e => {
+      if (this.isGCDDamage(e) && e.ability.name !== 'Attack' && e.ability.name !== 'Shot') {
+        const interval = timestamps[e.sourceID] && timestamps[e.sourceID].length ?
+          (e.timestamp - timestamps[e.sourceID][timestamps[e.sourceID].length - 1].timestamp) :
+          0
+        timestamps[e.sourceID] = timestamps[e.sourceID] || []
+        timestamps[e.sourceID].push({timestamp: e.timestamp, interval: interval})
+      }
+    })
+    Object.keys(timestamps).forEach(source => {
+      const player = this.getPlayer(encounter, parseInt(source))
+      if (!player || player.type === 'LimitBreak') return
+      let intervalSum = 0
+      timestamps[source] = timestamps[source].filter(timestamp => {
+        return (timestamp.interval >= minGCD && timestamp.interval <= maxGCD)
+      })
+      timestamps[source].forEach(timestamp => {
+        intervalSum += timestamp.interval
+      })
+      player.averageGCD = intervalSum / timestamps[source].length
+    })
+  }
+
+  isGCDDamage(e) {
+    return (!e.tick && resources.ogcdAbilities.indexOf(e.ability.guid) === -1)
   }
 
   buffEvents(encounter, options, cb) {

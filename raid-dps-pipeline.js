@@ -116,13 +116,14 @@ RaidDPSPipeline.prototype.buffsBySource = function(data, encounter) {
       sources[playerName].buffs.push({buffIcon: buff.abilityIcon, buffId: buff.guid, buffName: buff.name, playerId: source.source})
       source.bands = source.bands.filter(band => band.entries.length && band.end - band.start > 4000)
       source.bands.forEach(band => {
-        band.entries = band.entries.filter(entry => entry.type !== 'LimitBreak' && entry.id !== source.source)
+        band.entries = band.entries.filter(entry => entry.type !== 'LimitBreak' && entry.id !== source.source && entry.total > 0)
         band.entries.forEach(entry => {
           entry.buffDPS = parseFloat((entry.total / encounterDuration * 1000).toFixed(2))
           entry.totalDPS = parseFloat((entry.totalBefore / encounterDuration * 1000).toFixed(2))
           entry.totalStr = parseFloat(entry.total.toFixed(2))
         })
       })
+      source.bands = source.bands.filter(b => b.entries.length > 0)
     })
   })
   return Object.values(sources)

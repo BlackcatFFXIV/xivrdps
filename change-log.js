@@ -7,7 +7,8 @@ const ChangeLog = {
         'The "prepull" check wasn\'t checking if there were aren\'t instances of that buff applied, now if there\'s any ranges defined for that buff, it won\'t count as prepull',
         'It was adding debuffs for each enemy target. Splitting them up is actually correct, but I needed to split that up in the damage event calculation too so there are not a bunch of duplicate damage calculations.',
         'Overridden buffs were generating new ranges instead of simply overriding.',
-        'A target blacklist now exists for xivrdps as well, since events do not blacklist anything. For example, Easterly from O6S will no longer be considered as a valid debuff/damage target.'
+        'A target blacklist now exists for xivrdps as well, since events do not blacklist anything. For example, Easterly from O6S will no longer be considered as a valid debuff/damage target.',
+        'Haste buffs are reimplemented in a completely different manner. Ignoring OGCDs/dot ticks, it takes the player\'s GCD, the amount of GCDs they would gain from the buff, and the average GCD damage during the buff to find the buff\'s contribution during that range.'
       ]
     },
 

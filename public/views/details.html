@@ -9,9 +9,11 @@
       {{/debuffTargetString}}
     {{#entries}}
     <div class="details-range-entry">
-      <img src="/img/class/{{type}}.png" alt="{{type}}" /> {{name}}
-      <br/>
-      <br/>From Buff: {{totalStr}}
+      <div class="details-entry-define">
+        <div class="details-entry-define-icon"><img src="/img/class/{{type}}.png" alt="{{type}}" /></div>
+        <div class="details-entry-define-name">{{name}}</div>
+      </div>
+      From Buff: {{totalStr}}
       <br>&#9658;&nbsp;&nbsp;&nbsp;<i>DPS: {{buffDPS}}</i>
       <br/>Total: {{totalBefore}}
       <br>&#9658;&nbsp;&nbsp;&nbsp;<i>DPS: {{totalDPS}}</i>

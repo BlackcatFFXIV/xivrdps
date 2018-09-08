@@ -159,8 +159,9 @@ hr {
 .details-range-entry {
   background-color: #272b30;
   border-radius: 5px;
-  width: 200px;
-  height: 100px;
+  width: 220px;
+  height: 165px;
+  vertical-align: top;
   display: inline-table;
   padding: 20px;
   margin: 10px;
@@ -278,4 +279,19 @@ label {
   border-radius: 5px;
   padding: 10px;
   margin: 10px 0;
+}
+
+.details-entry-define {
+  display: table;
+  margin-bottom: 10px;
+  height: 35px;
+}
+
+.details-entry-define-icon {
+  display: table-cell;
+  width: 44px;
+}
+
+.details-entry-define-name {
+  display: table-cell;
 }
