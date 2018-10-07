@@ -501,13 +501,14 @@ class FFLogs {
             .filter(r => (r.target === range.target) && !r.endTime)
           let oldRange = buffsToTarget[buffsToTarget.length - 1]
           // As long as this isn't an overridden buff, add a new buff range.
-          if (!oldRange) {
+          // Or if it's overridden by a different player.
+          if (!oldRange || oldRange.source !== range.source) {
             range.startTime = buffEvent.timestamp
             buff.bands.push(range)
           }
         } else if (buffEvent.type === 'removebuff' || buffEvent.type === 'removedebuff') {
           let buffsToTarget = buff.bands
-            .filter(r => r && (r.target === range.target) && !r.endTime)
+            .filter(r => r && (r.target === range.target) && (r.source === range.source) && !r.endTime)
           const existingRange = buffsToTarget[buffsToTarget.length - 1]
           if (existingRange) {
             existingRange.endTime = buffEvent.timestamp

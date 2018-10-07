@@ -1,6 +1,15 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('10-06-2018'),
+      description: '',
+      list: [
+        'Alphascape savage encounters added to the encounter list.',
+        'Fixed a problem with overridden debuffs on certain logs.'
+      ]
+    },
+
+    {
       date: new Date('09-07-2018'),
       description: 'Debuffs and damage from debuffs will now be categorized by enemy target.',
       list: [
