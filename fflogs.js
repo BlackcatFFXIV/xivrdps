@@ -188,7 +188,7 @@ class FFLogs {
             const isCard = resources.buffs[encounter.patch][value.buff.name].isCard
             let targeted = (value.targets.indexOf(entry.id) !== -1)
             if (!targeted && debuff) targeted = true
-            if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
+            //if (targeted && affected && affected.indexOf(entry.type) === -1) targeted = false
             if (targeted) {
               let total = 0
               if (type !== 'haste') {
@@ -324,6 +324,8 @@ class FFLogs {
     const type = resources.buffs[encounter.patch][buff.name].type
     const isSolo = (!band.timeDilatedAOE && band.targets.length === 1 && buff.type !== 'debuff')
     const isCard = resources.buffs[encounter.patch][buff.name].isCard
+    const affected = resources.buffs[encounter.patch][buff.name].affected
+    const affectedType = resources.buffs[encounter.patch][buff.name].affectedType
     let soloBonus = isCard ? 0.5 : 1
     let haste = 0
     if (type === 'haste') {
@@ -335,6 +337,7 @@ class FFLogs {
     }
     events = events.filter(e => e.timestamp >= start && e.timestamp <= end)
     events.forEach(e => {
+      let attackTypeDeviations = resources.attackTypesByAbility[e.ability.name]
       if (buff.type === 'debuff') {
         const target = band.targets[0]
         if (target !== e.targetID) return
@@ -344,6 +347,16 @@ class FFLogs {
       const playerOrPet = this.getPlayer(encounter, e.sourceID) || encounter.friendlyPets.find(f => f.id === e.sourceID)
       if (!playerOrPet || playerOrPet.name === 'Multiple Players') return
       let entry = entries.find(entry => entry.id === playerOrPet.id)
+      let petOwner = null
+      if (playerOrPet.type === 'Pet') petOwner = this.getPlayer(encounter, playerOrPet.petOwner)
+      let player = petOwner || playerOrPet
+      let isAutoAttack = e.ability.name === 'Attack' || e.ability.name === 'Shot'
+      if (affected && affectedType &&
+          affected.indexOf(player.type) === -1 &&
+          !(isAutoAttack && resources.autoAttacks[player.type] && resources.autoAttacks[player.type].indexOf(affectedType) !== -1) &&
+          !(attackTypeDeviations && attackTypeDeviations.length)) return
+      if (affectedType && attackTypeDeviations && attackTypeDeviations.length &&
+        attackTypeDeviations.indexOf(affectedType) === -1) return
       if (!entry) {
         entry = {
           name: playerOrPet.name,
@@ -354,8 +367,7 @@ class FFLogs {
           gcdDamage: 0,
           gcdCount: 0
         }
-        if (entry.type === 'Pet') {
-          const petOwner = this.getPlayer(encounter, playerOrPet.petOwner)
+        if (petOwner) {
           entry.petOwnerId = petOwner.id
           entry.petOwnerName = petOwner.name
         }

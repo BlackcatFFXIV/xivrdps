@@ -67,17 +67,17 @@ const FFLogsResources = {
       'Critical Up': {bonus: 0.02 * critModifier, job: 'Bard', type: 'crit', buff: true, icon: '012000-012613'},
       'Battle Litany': {bonus: 0.15 * critModifier, job: 'Dragoon', type: 'crit', buff: true, icon: '012000-012578'},
       'Left Eye': {bonus: 0.05, job: 'Dragoon', buff: true, icon: '012000-012582'},
-      'Piercing Resistance Down': {bonus: 0.05, job: 'Dragoon', debuff: true, affected: piercingClasses('Dragoon'), icon: '015000-015065'},
-      'Slashing Resistance Down': {bonus: 0.1, debuff: true, affected: slashingClasses, icon: '015000-015786'},
-      'Physical Vulnerability Up': {bonus: 0.02, job: 'Summoner', debuff: true, affected: physClasses('Summoner'), icon: '015000-015053'},
-      'Embolden': {bonus: 0, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239},
-      'Embolden[5]': {bonus: 0.1, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden5'},
-      'Embolden[4]': {bonus: 0.08, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden4'},
-      'Embolden[3]': {bonus: 0.06, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden3'},
-      'Embolden[2]': {bonus: 0.04, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden2'},
-      'Embolden[1]': {bonus: 0.02, job: 'RedMage', buff: true, affected: physClasses('RedMage'), excludeId: 1001239, icon: 'embolden1'},
-      'Magic Vulnerability Up': {bonus: 0.1, job: 'Summoner', debuff: true, affected: magicClasses('Summoner'), icon: '015000-015057'},
-      'Brotherhood': {bonus: 0.05, job: 'Monk', buff: true, affected: physClasses('Monk'), icon: '012000-012529'},
+      'Piercing Resistance Down': {bonus: 0.05, job: 'Dragoon', debuff: true, affected: piercingClasses('Dragoon'), affectedType: 'piercing', icon: '015000-015065'},
+      'Slashing Resistance Down': {bonus: 0.1, debuff: true, affected: slashingClasses, affectedType: 'slashing', icon: '015000-015786'},
+      'Physical Vulnerability Up': {bonus: 0.02, job: 'Summoner', debuff: true, affected: physClasses('Summoner'), affectedType: 'physical', icon: '015000-015053'},
+      'Embolden': {bonus: 0, job: 'RedMage', buff: true, affected: physClasses('RedMage'), affectedType: 'physical', excludeId: 1001239},
+      'Embolden[5]': {bonus: 0.1, job: 'RedMage', buff: true, affected: physClasses('RedMage'), affectedType: 'physical', excludeId: 1001239, icon: 'embolden5'},
+      'Embolden[4]': {bonus: 0.08, job: 'RedMage', buff: true, affected: physClasses('RedMage'), affectedType: 'physical', excludeId: 1001239, icon: 'embolden4'},
+      'Embolden[3]': {bonus: 0.06, job: 'RedMage', buff: true, affected: physClasses('RedMage'), affectedType: 'physical', excludeId: 1001239, icon: 'embolden3'},
+      'Embolden[2]': {bonus: 0.04, job: 'RedMage', buff: true, affected: physClasses('RedMage'), affectedType: 'physical', excludeId: 1001239, icon: 'embolden2'},
+      'Embolden[1]': {bonus: 0.02, job: 'RedMage', buff: true, affected: physClasses('RedMage'), affectedType: 'physical', excludeId: 1001239, icon: 'embolden1'},
+      'Magic Vulnerability Up': {bonus: 0.1, job: 'Summoner', debuff: true, affected: magicClasses('Summoner'), affectedType: 'magical', icon: '015000-015057'},
+      'Brotherhood': {bonus: 0.05, job: 'Monk', buff: true, affected: physClasses('Monk'), affectedType: 'physical', icon: '012000-012529'},
       'Enhanced Royal Road': {isRoyalRoad: true, buff: true},
       'Radiant Shield': {type: 'special', job: 'Summoner', icon: '012000-012711'}
     },
@@ -107,6 +107,39 @@ const FFLogsResources = {
   targetBlacklist: {
     '52': ['Easterly'],
     '53': ['Bibliolatrist']
+  },
+
+  attackTypeDeviation: {
+    magical: [
+      'Holy Spirit',
+      'Raiton',
+      'Katon',
+      'Doton',
+      'Bhavacakra',
+      'Hellfrog Medium',
+      'Unmend',
+      'Unleash',
+      'Abyssal Drain',
+      'Dark Passanger',
+      'Salted Earth'
+    ],
+    slashing: [],
+    blunt: [],
+    piercing: [
+      'Fleche',
+      'Contre Sixte',
+      'Corps-a-corps',
+      'Displacement'
+    ]
+  },
+
+  autoAttacks: {
+    BlackMage: ['blunt', 'physical'],
+    Summoner: ['blunt', 'physical'],
+    RedMage: ['piercing', 'physical'],
+    WhiteMage: ['blunt', 'physical'],
+    Scholar: ['blunt', 'physical'],
+    Astrologian: ['slashing', 'physical']
   },
 
   ogcdAbilities: [
@@ -304,6 +337,20 @@ const typesFull = {
   damage: 'Damage',
   special: 'Special'
 }
+
+FFLogsResources.attackTypeDeviation.physical =
+  FFLogsResources.attackTypeDeviation.piercing
+    .concat(FFLogsResources.attackTypeDeviation.slashing)
+    .concat(FFLogsResources.attackTypeDeviation.blunt)
+
+
+FFLogsResources.attackTypesByAbility = {}
+Object.keys(FFLogsResources.attackTypeDeviation).forEach(attackType => {
+  FFLogsResources.attackTypeDeviation[attackType].forEach(abilityName => {
+    FFLogsResources.attackTypesByAbility[abilityName] = FFLogsResources.attackTypesByAbility[abilityName] || []
+    FFLogsResources.attackTypesByAbility[abilityName].push(attackType)
+  })
+})
 
 Object.keys(FFLogsResources.buffsLight).forEach(patch => {
   Object.keys(FFLogsResources.buffsLight[patch]).forEach(buffName => {

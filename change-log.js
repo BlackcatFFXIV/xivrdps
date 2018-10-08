@@ -5,7 +5,8 @@ const ChangeLog = {
       description: '',
       list: [
         'Alphascape savage encounters added to the encounter list.',
-        'Fixed a problem with overridden debuffs on certain logs.'
+        'Fixed a problem with overridden debuffs on certain logs.',
+        'Added damage type checking for abilities that deviate from a job\'s normal damage type. This includes autoattacks.'
       ]
     },
 
