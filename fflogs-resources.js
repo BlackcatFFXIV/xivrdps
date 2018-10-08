@@ -120,7 +120,7 @@ const FFLogsResources = {
       'Unmend',
       'Unleash',
       'Abyssal Drain',
-      'Dark Passanger',
+      'Dark Passenger',
       'Salted Earth'
     ],
     slashing: [],
