@@ -115,6 +115,7 @@ const FFLogsResources = {
       'Raiton',
       'Katon',
       'Doton',
+      'Suiton',
       'Bhavacakra',
       'Hellfrog Medium',
       'Unmend',
