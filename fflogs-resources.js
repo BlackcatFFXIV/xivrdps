@@ -12,7 +12,7 @@ function exclusionFilter(arr, excluded) {
 const physClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excluded)
 const magicClasses = excluded => exclusionFilter(['Astrologian', 'Scholar', 'WhiteMage', 'BlackMage', 'RedMage', 'Summoner'], excluded)
 const piercingClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon'], excluded)
-const slashingClasses = ['Ninja', 'Samurai', 'Warrior', 'Paladin', 'DarkKnight']
+const slashingClasses = ['Paladin', 'DarkKnight']
 
 const FFLogsResources = {
   buffIds: {
