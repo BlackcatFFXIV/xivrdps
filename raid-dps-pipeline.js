@@ -77,6 +77,14 @@ RaidDPSPipeline.prototype.stages = {
     })
   },
 
+  'DoT Applications': function(results) {
+    this.fflogs.dotEvents(results.encounter, {}, dotEvents => {
+      if (!dotEvents || dotEvents.error) throw dotEvents
+      results.dotApplications = this.fflogs.dotApplications(results.encounter, dotEvents)
+      this.callNextStage(results)
+    })
+  },
+
   'Damage Contribution': function(results) {
     this.fflogs.damageFromBuffs(results.encounter, results.buffs, {}, (contribution, damageFromBuffs) => {
       if (!contribution || contribution.error) throw contribution

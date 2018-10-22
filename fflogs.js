@@ -45,6 +45,7 @@ class FFLogs {
           encounter.friendlyPets = result.friendlyPets
           encounter.enemies = result.enemies
           encounter.targetBlacklist = resources.targetBlacklist[encounter.boss] || []
+          encounter.dotApplications = {}
           cb(encounter)
         }
       }
@@ -318,6 +319,87 @@ class FFLogs {
     this.request('events/' + encounter.id, options, onResult)
   }
 
+  dotEvents(encounter, options, cb) {
+    let events = []
+    options = Object.assign({}, options, {
+      start: options.start || encounter.start_time,
+      end: options.end || encounter.end_time,
+      translate: true,
+      // Filter courtesy of TetherCalc by Xephera
+      filter: `
+        source.type="player" and
+        ability.id not in (1000493, 1000819, 1000820, 1001203, 1000821, 1000140, 1001195, 1001291, 1001221)
+        and (
+            (
+                type="applydebuff" or type="refreshdebuff" or type="removedebuff"
+            ) or (
+                (
+                    type="applybuff" or type="refreshbuff" or type="removebuff"
+                ) and (
+                    ability.id=1000190 or ability.id=1000749 or ability.id=1000501
+                )
+            ) or (
+                type="damage" and ability.id=799
+            )
+        )
+      `
+    })
+
+    const onResult = result => {
+      if (!result || !result.events || result.error) {
+        if (result && !result.events && !result.error) result.error = 'No entries found.'
+        cb(result)
+      } else {
+        events = events.concat(result.events)
+        if (result.nextPageTimestamp) {
+          options.start = result.nextPageTimestamp
+          this.request('events/' + encounter.id, options, onResult)
+        } else {
+          this.findAverageGCDs(encounter, events)
+          cb(events)
+        }
+      }
+    }
+    this.request('events/' + encounter.id, options, onResult)
+  }
+
+  dotApplications(encounter, events) {
+    events.forEach(e => {
+      encounter.dotApplications[e.ability.name] = encounter.dotApplications[e.ability.name] || {}
+      encounter.dotApplications[e.ability.name][e.sourceID] = encounter.dotApplications[e.ability.name][e.sourceID] || []
+      const dotApplications = encounter.dotApplications[e.ability.name][e.sourceID]
+      if (e.type === 'applybuff' || e.type === 'applydebuff' || e.type === 'refreshbuff' || e.type === 'refreshdebuff') {
+        if (e.type === 'refreshbuff' || e.type === 'refreshdebuff') dotApplications[dotApplications.length - 1].endTime = e.timestamp
+        dotApplications.push({startTime: e.timestamp})
+      } else {
+        if (!dotApplications.length) dotApplications.push({startTime: encounter.start_time});
+        dotApplications[dotApplications.length - 1].endTime = e.timestamp
+      }
+    })
+    return encounter.dotApplications
+  }
+
+  dotApplicationsForRange(dotApplications, start, end) {
+    let newDotApplications = {abilities: {}, endTime: end}
+    Object.keys(dotApplications).forEach(abilityName => {
+      newDotApplications.abilities[abilityName] = {}
+      Object.keys(dotApplications[abilityName]).forEach(sourceID => {
+        newDotApplications.abilities[abilityName][sourceID] = dotApplications[abilityName][sourceID].filter(dotApplication => {
+          return dotApplication.startTime >= start && dotApplication.startTime <= end
+        })
+        if (!newDotApplications.abilities[abilityName][sourceID].length) {
+          delete newDotApplications.abilities[abilityName][sourceID]
+        } else {
+          newDotApplications.abilities[abilityName][sourceID].forEach(dotApplication => {
+            if (dotApplication.endTime > newDotApplications.endTime) newDotApplications.endTime = dotApplication.endTime
+          })
+        }
+      })
+      if (!Object.keys(newDotApplications.abilities[abilityName]).length) delete newDotApplications.abilities[abilityName]
+    })
+    return newDotApplications
+  }
+
   damageDoneFromEvents(encounter, events, start, end, buff, band, cb) {
     const entries = []
     let bonus = resources.buffs[encounter.patch][buff.name].bonus
@@ -326,6 +408,8 @@ class FFLogs {
     const isCard = resources.buffs[encounter.patch][buff.name].isCard
     const affected = resources.buffs[encounter.patch][buff.name].affected
     const affectedType = resources.buffs[encounter.patch][buff.name].affectedType
+    const originalEvents = events
+    const rangeDotApplications = this.dotApplicationsForRange(encounter.dotApplications, start, end)
     let soloBonus = isCard ? 0.5 : 1
     let haste = 0
     if (type === 'haste') {
@@ -335,51 +419,68 @@ class FFLogs {
       }
       haste = resources.buffs[encounter.patch][buff.name].haste * soloBonus
     }
-    events = events.filter(e => e.timestamp >= start && e.timestamp <= end)
-    events.forEach(e => {
-      let attackTypeDeviations = resources.attackTypesByAbility[e.ability.name]
-      if (buff.type === 'debuff') {
-        const target = band.targets[0]
-        if (target !== e.targetID) return
-        const enemy = encounter.enemies.find(en => en.id === target)
-        if (enemy && encounter.targetBlacklist.indexOf(enemy.name) !== -1) return
-      }
-      const playerOrPet = this.getPlayer(encounter, e.sourceID) || encounter.friendlyPets.find(f => f.id === e.sourceID)
-      if (!playerOrPet || playerOrPet.name === 'Multiple Players') return
-      let entry = entries.find(entry => entry.id === playerOrPet.id)
-      let petOwner = null
-      if (playerOrPet.type === 'Pet') petOwner = this.getPlayer(encounter, playerOrPet.petOwner)
-      let player = petOwner || playerOrPet
-      let isAutoAttack = e.ability.name === 'Attack' || e.ability.name === 'Shot'
-      if (affected && affectedType &&
-          affected.indexOf(player.type) === -1 &&
-          !(isAutoAttack && resources.autoAttacks[player.type] && resources.autoAttacks[player.type].indexOf(affectedType) !== -1) &&
-          !(attackTypeDeviations && attackTypeDeviations.length)) return
-      if (affectedType && attackTypeDeviations && attackTypeDeviations.length &&
-        attackTypeDeviations.indexOf(affectedType) === -1) return
-      if (!entry) {
-        entry = {
-          name: playerOrPet.name,
-          id: playerOrPet.id,
-          type: playerOrPet.type,
-          guid: playerOrPet.guid,
-          total: e.amount,
-          gcdDamage: 0,
-          gcdCount: 0
+
+    const processDamageEvents = (events, onlyTicks) => {
+      events.forEach(e => {
+        const isTick = (e.ability.type === 1 || e.ability.type === 64)
+        if (onlyTicks && !isTick) return
+        let attackTypeDeviations = resources.attackTypesByAbility[e.ability.name]
+        if (buff.type === 'debuff') {
+          const target = band.targets[0]
+          if (target !== e.targetID) return
+          const enemy = encounter.enemies.find(en => en.id === target)
+          if (enemy && encounter.targetBlacklist.indexOf(enemy.name) !== -1) return
         }
-        if (petOwner) {
-          entry.petOwnerId = petOwner.id
-          entry.petOwnerName = petOwner.name
+        const playerOrPet = this.getPlayer(encounter, e.sourceID) || encounter.friendlyPets.find(f => f.id === e.sourceID)
+        if (!playerOrPet || playerOrPet.name === 'Multiple Players') return
+        let entry = entries.find(entry => entry.id === playerOrPet.id)
+        let petOwner = null
+        if (playerOrPet.type === 'Pet') petOwner = this.getPlayer(encounter, playerOrPet.petOwner)
+        let player = petOwner || playerOrPet
+        let isAutoAttack = e.ability.name === 'Attack' || e.ability.name === 'Shot'
+        if (affected && affectedType &&
+            affected.indexOf(player.type) === -1 &&
+            !(isAutoAttack && resources.autoAttacks[player.type] && resources.autoAttacks[player.type].indexOf(affectedType) !== -1) &&
+            !(attackTypeDeviations && attackTypeDeviations.length)) return
+        if (affectedType && attackTypeDeviations && attackTypeDeviations.length &&
+          attackTypeDeviations.indexOf(affectedType) === -1) return
+        if (isTick) {
+          if (!rangeDotApplications.abilities[e.ability.name] || !rangeDotApplications.abilities[e.ability.name][e.sourceID]) return
+          let inRangeOfApplications = false
+          rangeDotApplications.abilities[e.ability.name][e.sourceID].forEach(dotApplication => {
+            inRangeOfApplications = inRangeOfApplications ||
+              (e.timestamp >= dotApplication.startTime && e.timestamp <= dotApplication.endTime)
+          })
+          if (!inRangeOfApplications) return
         }
-        entries.push(entry)
-      } else {
-        entry.total += e.amount
-      }
-      if (haste && this.isGCDDamage(e)) {
-        entry.gcdCount++
-        entry.gcdDamage += e.amount
-      }
-    })
+        if (!entry) {
+          entry = {
+            name: playerOrPet.name,
+            id: playerOrPet.id,
+            type: playerOrPet.type,
+            guid: playerOrPet.guid,
+            total: e.amount,
+            gcdDamage: 0,
+            gcdCount: 0
+          }
+          if (petOwner) {
+            entry.petOwnerId = petOwner.id
+            entry.petOwnerName = petOwner.name
+          }
+          entries.push(entry)
+        } else {
+          entry.total += e.amount
+        }
+        if (!onlyTicks && haste && this.isGCDDamage(e)) {
+          entry.gcdCount++
+          entry.gcdDamage += e.amount
+        }
+      })
+    }
+
+    processDamageEvents(events.filter(e => e.timestamp >= start && e.timestamp <= end))
+    if (rangeDotApplications.endTime > end)
+      processDamageEvents(events.filter(e => e.timestamp > end && e.timestamp <= rangeDotApplications.endTime), true)
     entries.forEach(entry => {
       if (haste && entry.gcdCount && entry.type !== 'Pet' && entry.type !== 'LimitBreak') {
         const player = this.getPlayer(encounter, entry.id)
@@ -423,7 +524,8 @@ class FFLogs {
   }
 
   isGCDDamage(e) {
-    return (!e.tick && resources.ogcdAbilities.indexOf(e.ability.guid) === -1 &&
+    return (!e.tick && e.ability.type !== 1 && e.ability.type !== 64 &&
+      resources.ogcdAbilities.indexOf(e.ability.guid) === -1 &&
       e.ability.name !== 'Attack' && e.ability.name !== 'Shot')
   }
 

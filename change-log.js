@@ -1,6 +1,14 @@
 const ChangeLog = {
   changes: [
     {
+      date: new Date('10-21-2018'),
+      description: '',
+      list: [
+        'Damage over time snapshotting for buff contribution added.'
+      ]
+    },
+
+    {
       date: new Date('10-06-2018'),
       description: '',
       list: [
