@@ -35,6 +35,11 @@ const FFLogsResources = {
     'Physical Vulnerability Up': 1000493,
     'Brotherhood': 1001182,
     'Embolden': 1001297,
+    'Embolden[1]': 1001297 + 99991,
+    'Embolden[2]': 1001297 + 99992,
+    'Embolden[3]': 1001297 + 99993,
+    'Embolden[4]': 1001297 + 99994,
+    'Embolden[5]': 1001297 + 99995,
     'Enhanced Royal Road': 1000816
     //'Expanded Royal Road': 1000817,
     //'Extended Royal Road': 1000818

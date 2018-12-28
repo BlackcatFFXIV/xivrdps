@@ -105,7 +105,7 @@ class FFLogs {
       let end = start + 4000
       for (let i=5; i>0; i--) {
         const name = 'Embolden[' + i + ']'
-        newBuffs[name] = newBuffs[name] || Object.assign({}, buff, {name: name, bands: [], abilityIcon: 'embolden' + i + '.png'})
+        newBuffs[name] = newBuffs[name] || Object.assign({}, buff, {name: name, bands: [], abilityIcon: 'embolden' + i + '.png', guid: buff.guid + 99990 + i})
         newBuffs[name].bands.push({startTime: start, endTime: end, source: band.source, targets: band.targets})
         start = end + 1
         end = start + 4000

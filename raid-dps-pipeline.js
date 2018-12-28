@@ -122,7 +122,7 @@ RaidDPSPipeline.prototype.buffsBySource = function(data, encounter) {
       const playerName = this.fflogs.getPlayer(encounter, source.source).name
       sources[playerName] = sources[playerName] || {playerName: playerName, playerId: source.source, buffs: []}
       sources[playerName].buffs.push({buffIcon: buff.abilityIcon, buffId: buff.guid, buffName: buff.name, playerId: source.source})
-      source.bands = source.bands.filter(band => band.entries.length && band.end - band.start > 4000)
+      source.bands = source.bands.filter(band => band.entries.length && band.end - band.start >= 4000)
       source.bands.forEach(band => {
         band.entries = band.entries.filter(entry => entry.type !== 'LimitBreak' && entry.id !== source.source && entry.total > 0)
         band.entries.forEach(entry => {

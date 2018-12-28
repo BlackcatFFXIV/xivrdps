@@ -4,7 +4,8 @@ const ChangeLog = {
       date: new Date('12-27-2018'),
       description: '',
       list: [
-        'Some buffs were showing up as debuffs in events and were getting disregarded, this should be fixed now.'
+        'Some buffs were showing up as debuffs in events and were getting disregarded, this should be fixed now.',
+        'Embolden should now show up in the details view.'
       ]
     },
 
