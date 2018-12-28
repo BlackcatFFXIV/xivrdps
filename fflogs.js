@@ -581,13 +581,18 @@ class FFLogs {
         let buff = {
           name: buffEvent.ability.name,
           guid: buffEvent.ability.guid,
-          abilityIcon: buffEvent.ability.abilityIcon,
-          type: buffEvent.type.replace(/remove|apply/g, '')
+          abilityIcon: buffEvent.ability.abilityIcon
         }
         let range = {
           source: buffEvent.sourceID,
           target: buffEvent.targetID
         }
+        this.buffNameTransform(buff)
+        const buffMeta = resources.buffs[encounter.patch][buff.name]
+        // Use own metadata to determine if something is a buff/debuff, rather than using the fflogs event name.
+        if (buffMeta.buff) buff.type = 'buff'
+        else if (buffMeta.debuff) buff.type = 'debuff'
+        else buff.type = buffEvent.type.replace(/remove|apply/g, '')
         if (buff.type === 'debuff') {
           const enemy = encounter.enemies.find(e => e.id === range.target)
           if (enemy && encounter.targetBlacklist.indexOf(enemy.name) !== -1) return
@@ -595,7 +600,6 @@ class FFLogs {
         const sourcePet = encounter.friendlyPets.find(f => f.id === range.source)
         if (sourcePet) range.source = sourcePet.petOwner
         if (buff.name === 'Physical Vulnerability Up') {
-          const buffMeta = resources.buffs[encounter.patch][buff.name]
           const firstOfJob = encounter.friendlies.find(entry => (entry.type === buffMeta.job)) // Don't know which player this came from, assume it's the first of the job, won't work for multiples
           range.source = firstOfJob.id
         }
@@ -606,7 +610,6 @@ class FFLogs {
             if (!pet || pet.name === 'Selene' || pet.name === 'Eos') return
           }
         }
-        this.buffNameTransform(buff)
         buffMap[buff.name] = buff = (buffMap[buff.name] || buff)
         buff.bands = buff.bands || []
         if (range.source === undefined || range.target === undefined) return
