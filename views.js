@@ -1,23 +1,23 @@
-const resources = require('./fflogs-resources')
+/*const resources = require('./fflogs-resources')
 const changeLog = require('./change-log')
 const Result = require('./models/result')
 const RaidDPSPipeline = require('./raid-dps-pipeline')
 const debug = false
 const dateOptions = {year: "numeric", month: "long", day: "numeric"}
-const pipelines = {}
+const pipelines = {}*/
 
 class Views {
   constructor(app, fflogs) {
     this.app = app
-    this.fflogs = fflogs
+    //this.fflogs = fflogs
 
     this.views = {
       '/': (req, res) => {
         res.render('index', {
-          encounterIds: resources.encounters,
-          worlds: resources.worlds
+          /*encounterIds: resources.encounters,
+          worlds: resources.worlds*/
         })
-      },
+      }/*,
 
       'changelog': (req, res) => {
         res.render('changelog', changeLog)
@@ -184,7 +184,7 @@ class Views {
           res.json({token: pipeline.token})
         }
         pipeline.start()
-      },
+      }*/,
 
       '*': (req, res) => {
         res.redirect('/')

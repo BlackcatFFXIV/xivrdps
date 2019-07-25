@@ -1,0 +1,106 @@
+{{> header}}
+
+<script src="/js/index.js" type="text/javascript"></script>
+
+<div class="container container-inner">
+  <div class="container container-inner content content-title">
+    <h4>XIV Raid DPS Calculator</h4>
+  </div>
+
+  <div class="container container-inner content">
+    <div class="selection-group">
+      <div class="encounter-nav">
+        <div class="form-group form-group-full">
+          <label>FFLogs URL</label> <input id="encounter-url" />
+        </div>
+      </div>
+    </div>
+
+    <div class="selection-group">
+      <h4>Find Encounter</h4>
+      <div class="encounter-nav">
+        <div class="form-group">
+          <select id="encounter-list">
+            {{#encounterIds}}
+            <optgroup label="{{name}}">
+              {{#encounters}}
+              <option value="{{id}}">{{name}}</option>
+              {{/encounters}}
+            </optgroup>
+            {{/encounterIds}}
+          </select>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="selectLocation()" type="button">
+            Show Encounter Listing
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="selection-group">
+      <h4>Find Encounter by Character</h4>
+      <div class="encounter-nav">
+        <div class="form-group">
+          <label>Character</label> <input id="character-name" />
+        </div>
+        <div class="form-group">
+          <label>World</label>
+          <select id="world-list">
+            <optgroup label="NA">
+              {{#worlds.NA}}
+              <option value="{{.}}">{{.}}</option>
+              {{/worlds.NA}}
+            </optgroup>
+            <optgroup label="EU">
+              {{#worlds.EU}}
+              <option value="{{.}}">{{.}}</option>
+              {{/worlds.EU}}
+            </optgroup>
+            <optgroup label="JP">
+              {{#worlds.JP}}
+              <option value="{{.}}">{{.}}</option>
+              {{/worlds.JP}}
+            </optgroup>
+          </select>
+        </div>
+        <div class="form-group">
+          <button class="btn btn-primary" onclick="characterLocation()" type="button">
+            Choose Character
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="selection-group">
+      <h4>Select Encounter By ID</h4>
+      <div class="encounter-nav">
+        <div class="form-group">
+          <label>Encounter ID</label> <input id="encounter-id" />
+        </div>
+        <div class="form-group">
+          <label>Fight #</label> <input id="fight-id" />
+        </div>
+        <div class="form-group">
+          <button class="btn btn-primary" onclick="encounterLocation()" type="button">
+            Select Encounter
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="selection-group">
+      <h4><a href="/changelog">Change Log / Issues</a></h4>
+      <h4><a href="/definitions">Definitions</a></h4>
+    </div>
+  </div>
+
+  <div class="container container-inner content content-small">
+    <a href="http://twitter.com/BlackcatFFXIV" target="_blank"><img src="/img/twitter-icon.svg" class="svg-icon" alt="Twitter" /></a>&nbsp;&nbsp;
+    <a href="https://github.com/BlackcatFFXIV/xivrdps" target="_blank"><img src="/img/github-icon.svg" class="svg-icon" alt="GitHub" /></a>&nbsp;&nbsp;
+    <hr />
+    {{> links}}
+  </div>
+</div>
+
+{{> footer}}

@@ -9,7 +9,7 @@ function exclusionFilter(arr, excluded) {
   })
 }
 
-const physClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior'], excluded)
+const physClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon', 'Monk', 'Ninja', 'Samurai', 'Paladin', 'DarkKnight', 'Warrior', 'Dancer'], excluded)
 const magicClasses = excluded => exclusionFilter(['Astrologian', 'Scholar', 'WhiteMage', 'BlackMage', 'RedMage', 'Summoner'], excluded)
 const piercingClasses = excluded => exclusionFilter(['Bard', 'Machinist', 'Dragoon'], excluded)
 const slashingClasses = ['Paladin', 'DarkKnight']
@@ -95,6 +95,36 @@ const FFLogsResources = {
     },
     '4.2': {
       'Hypercharge': {bonus: 0.05},
+    },
+    '5.0': {
+      'Devilment': {bonus: 0.2, job: 'Dancer', type: 'crit', buff: true, icon: '013000-013204'}, // This is crit + dh, it might need some exceptions.
+      'Standard Finish': {bonus: 0.05, job: 'Dancer', type: 'damage', buff: true, icon: '013000-013204'},
+      'Technical Finish': {bonus: 0.05, job: 'Dancer', type: 'damage', buff: true, icon: '013000-013204'},
+
+      // New AST buff logic will need to be added
+      'The Balance': {bonus: 0.06, job: 'Astrologian', type: 'damage', buff: true, isCard: true, icon: '013000-013204'},
+      'The Spear': {bonus: 0.06, job: 'Astrologian', type: 'damage', buff: true, isCard: true, icon: '013000-013207'},
+      'The Arrow': {bonus: 0.06, job: 'Astrologian', type: 'damage', buff: true, isCard: true, icon: '013000-013206'},
+      'The Bole': {bonus: 0.06, job: 'Astrologian', type: 'damage', buff: true, isCard: true, icon: '013000-013206'},
+      'The Ewer': {bonus: 0.06, job: 'Astrologian', type: 'damage', buff: true, isCard: true, icon: '013000-013206'},
+      'The Spire': {bonus: 0.06, job: 'Astrologian', type: 'damage', buff: true, isCard: true, icon: '013000-013206'},
+      'Lord of Crowns': {bonus: 0.08, job: 'Astrologian', type: 'damage', buff: true, isCard: true, icon: '013000-013206'},
+      'Lady of Crowns': {bonus: 0.08, job: 'Astrologian', type: 'damage', buff: true, isCard: true, icon: '013000-013206'},
+      'Divination': {bonus: 0.06, job: 'Astrologian', type: 'damage', buff: true, icon: '013000-013206'},
+
+      'Battle Voice': {bonus: 0.2},
+      'Devotion': {bonus: 0.05},
+
+      // Removed definitions
+      'Fey Wind': {removed: true},
+      'Critical Up': {removed: true},
+      'Hypercharge': {removed: true},
+      'Magic Vulnerability Up': {removed: true},
+      'Physical Vulnerability Up': {removed: true},
+      'Radiant Shield': {removed: true},
+      'Piercing Resistance Down': {removed: true},
+      'Slashing Resistance Down': {removed: true},
+      'Physical Vulnerability Up': {removed: true}
     }
   },
 
@@ -328,6 +358,7 @@ Object.keys(FFLogsResources.buffs).forEach(patch => {
       })
     })
     FFLogsResources.buffs[patch] = patchBuffNew
+    if (patchBuffNew.removed) delete FFLogsResources.buffs[patch][buffName]
   } else {
     Object.keys(patchBuff).forEach(buffName => {
       if (!patchBuff[buffName].type) patchBuff[buffName].type = 'damage'
